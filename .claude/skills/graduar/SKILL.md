@@ -10,11 +10,12 @@ Nivel pedido: $ARGUMENTS
 
 ## 1. ¿En qué nivel está?
 
-Lee `docs/graduacion/README.md`. Si no se indicó nivel, detecta el estado actual y propone el siguiente:
+Lee `docs/graduacion/README.md`. Recuerda: usa **Windows**, Expo Go y Supabase Free; todo empieza gratis y cada nivel dice su coste. Si no se indicó nivel, detecta el estado actual y propone el siguiente:
 
 | Señal en el repo / entorno                                                 | Nivel hecho |
 | -------------------------------------------------------------------------- | ----------- |
-| `git remote -v` apunta a GitHub y `supabase/.temp/project-ref` existe      | 01          |
+| `supabase/.temp/project-ref` existe (lo crea `npm run setup`)              | 0 (base)    |
+| `git remote -v` apunta a GitHub y el CI corre en los PR                    | 01          |
 | `app.json` tiene `extra.eas.projectId`                                     | 02          |
 | Existe `src/observability/sentry.ts` / `posthog.ts`                        | 03          |
 | `supabase/config.toml` o docs mencionan SMTP propio / hay función de email | 04          |

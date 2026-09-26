@@ -13,7 +13,8 @@
 > **Tiempo estimado:** 1–2 horas (la verificación del dominio puede tardar desde minutos hasta
 > unas horas en propagarse).
 >
-> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md) (Supabase en la nube).
+> **Requisitos:** tu Supabase en la nube (nivel 0, `npm run setup`). Recomendable el
+> [Nivel 1](01-nube-github-y-ci.md) para que las funciones se desplieguen solas al mergear.
 
 ## Por qué hace falta
 
@@ -152,14 +153,15 @@ Y para _Reset password_:
 
 No borres `{{ .ConfirmationURL }}`: es el enlace mágico que genera Supabase.
 
-> En local no necesitas nada de esto: todos los emails de Supabase local se quedan en **Mailpit**,
-> en [http://127.0.0.1:54424](http://127.0.0.1:54424). Ahí ves lo que se "enviaría" sin mandar
-> nada de verdad.
+> **Si usas base local (Docker):** allí no necesitas nada de esto: todos los emails de la base
+> local se quedan en **Mailpit** (`http://127.0.0.1:54424`), donde ves lo que se "enviaría" sin
+> mandar nada de verdad.
 
 ### 7. Activa "Confirm email"
 
-**Authentication → Sign In / Providers → Email → Confirm email: activado.** Si lo desactivaste en
-el nivel 1 para dejar entrar a amigos, este es el momento de volver a activarlo. La app ya está
+**Authentication → Sign In / Providers → Email → Confirm email: activado.** Lo desactivaste al
+hacer `npm run setup` para registrarte con emails de prueba: este es el momento de volver a
+activarlo. La app ya está
 preparada: `signUp` (en `src/api/auth.ts`) detecta que hace falta confirmar y se lo dice al
 usuario.
 
@@ -203,7 +205,7 @@ revocar una sin romper la otra.
 Genera un secreto aleatorio para el webhook:
 
 ```bash
-openssl rand -hex 32
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 Crea (o edita) el archivo `supabase/functions/.env`, que **ya está en `.gitignore`**, con los tres
@@ -211,7 +213,7 @@ valores (todos **secretos** excepto `EMAIL_FROM`, que no es delicado):
 
 ```dotenv
 RESEND_API_KEY=re_tu_clave_de_edge_functions
-WEBHOOK_SECRET=el_valor_que_te_ha_dado_openssl
+WEBHOOK_SECRET=el_valor_que_te_ha_dado_el_comando
 EMAIL_FROM=Tu App <hola@mail.tuapp.com>
 ```
 
@@ -248,7 +250,7 @@ Crea `supabase/functions/send-welcome-email/index.ts`:
 //   · RESEND_API_KEY solo existe aquí, en el servidor (INV-SEC-1).
 //
 // Secretos:   npx supabase secrets set --env-file supabase/functions/.env
-// Desplegar:  npx supabase functions deploy send-welcome-email
+// Desplegar:  npx supabase functions deploy send-welcome-email --use-api
 // Guía:       docs/graduacion/04-emails-con-resend.md
 // ════════════════════════════════════════════════════════════════════════════════════════════
 
@@ -396,7 +398,7 @@ verify_jwt = false
 ### 5. Despliégala
 
 ```bash
-npx supabase functions deploy send-welcome-email
+npx supabase functions deploy send-welcome-email --use-api
 ```
 
 (A partir de ahora, si tienes el nivel 1 completo, `deploy-supabase.yml` la redesplegará sola
@@ -417,28 +419,28 @@ _Database → Webhooks_). Si te pide activar la integración, acéptalo. Luego *
 Guarda.
 
 > Este webhook vive **solo en la nube** (no está en `supabase/migrations/`). Si algún día creas
-> otro proyecto (por ejemplo, staging en el nivel 10), tendrás que crearlo también allí. Guardarlo
+> otro proyecto (por ejemplo, el de producción en el nivel 10), tendrás que crearlo también allí. Guardarlo
 > como migración sin meter el secreto en el repo es posible (con Supabase Vault), pero es más
 > avanzado: pídeselo a Claude cuando lo necesites.
 
-### 7. (Opcional) Probarla en local
+### 7. Pruébala
 
-En local, los secretos se leen de `supabase/functions/.env`. Arranca las funciones:
+Regístrate en la app con una cuenta nueva que use **tu propio email** (así el email de
+bienvenida te llega a ti). El registro crea la fila en `profiles`, el webhook llama a la función
+y la función manda el email. Comprueba:
 
-```bash
-npx supabase functions serve
-```
+- En Supabase → **Edge Functions → send-welcome-email → Logs**: una llamada con estado 200.
+- En Resend → **Emails**: el envío, con estado _Delivered_.
 
-En otra terminal, simula el webhook con el id de un usuario que exista en tu base local
-(lo ves en Studio, [http://127.0.0.1:54423](http://127.0.0.1:54423), tabla `profiles`):
+Para comprobar que la función rechaza llamadas sin el secreto: en **Edge Functions →
+send-welcome-email**, pulsa el botón de probar la función (_Test_), déjalo sin la cabecera
+`x-webhook-secret` y envíalo. Tiene que responder **401**.
 
-```bash
-curl -i -X POST http://127.0.0.1:54421/functions/v1/send-welcome-email -H "Content-Type: application/json" -H "x-webhook-secret: TU_WEBHOOK_SECRET" -d '{"type":"INSERT","table":"profiles","schema":"public","record":{"id":"UUID_DEL_USUARIO","display_name":"Ana"},"old_record":null}'
-```
-
-Ojo: esto **sí** envía un email real a través de Resend (la función no pasa por Mailpit). Hazlo
-con un usuario local registrado con tu propio email. Si quieres crear el webhook también en local,
-la URL es `http://host.docker.internal:54421/functions/v1/send-welcome-email`.
+> **Si usas base local (Docker):** los secretos se leen de `supabase/functions/.env`, arrancas
+> las funciones con `npx supabase functions serve` (en otra terminal) y creas el webhook en
+> Studio (`http://127.0.0.1:54423`) con la URL
+> `http://host.docker.internal:54421/functions/v1/send-welcome-email`. Ojo: aunque la base sea
+> local, la función **sí** envía un email real a través de Resend (no pasa por Mailpit).
 
 ---
 
@@ -463,7 +465,7 @@ la URL es `http://host.docker.internal:54421/functions/v1/send-welcome-email`.
 - **"Email rate limit exceeded":** has superado el límite de **Authentication → Rate Limits** de
   Supabase o los 100/día de Resend Free.
 - **El email llega pero el enlace abre una web en blanco:** revisa Site URL y Redirect URLs (nivel
-  1, paso 7). Si hiciste `npm run rename`, el esquema ya no es `lienzo://`.
+  1, paso 2). Si hiciste `npm run rename`, el esquema ya no es `lienzo://`.
 - **El dominio no se verifica:** errores típicos al copiar DNS: algunos paneles añaden tu dominio al
   final del nombre (acabas con `resend._domainkey.tuapp.com.tuapp.com`). Copia solo la parte que te
   diga el panel. Y espera: puede tardar horas.

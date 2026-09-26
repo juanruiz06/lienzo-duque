@@ -11,7 +11,7 @@
 >
 > **Tiempo estimado:** medio día.
 >
-> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md) (Supabase en la nube) y [Nivel 2](02-builds-con-eas.md)
+> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md) (GitHub y CI) y [Nivel 2](02-builds-con-eas.md)
 > (**development build** y `projectId` de EAS). Las push **no funcionan en Expo Go** en Android ni
 > en el simulador: necesitas un **móvil de verdad**.
 
@@ -177,10 +177,11 @@ revoke execute on function public.register_push_token(text, text) from public, a
 grant execute on function public.register_push_token(text, text) to authenticated;
 ```
 
-Aplica y regenera los tipos:
+Aplícala a tu proyecto de desarrollo (te enseña la migración y pide confirmación: responde `Y`)
+y regenera los tipos. Si usas base local (Docker), en vez de `db:push`: `npm run db:reset`.
 
 ```bash
-npm run db:reset
+npm run db:push
 ```
 
 ```bash
@@ -545,22 +546,23 @@ verify_jwt = false
 Genera uno largo y aleatorio:
 
 ```bash
-openssl rand -hex 32
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-- **Local**: crea `supabase/functions/.env` (ya está en `.gitignore`) con
-  `PUSH_WEBHOOK_SECRET=el-valor-generado`.
-- **Nube**:
+Guárdalo como secreto de tu proyecto de Supabase:
 
-  ```bash
-  npx supabase secrets set PUSH_WEBHOOK_SECRET=el-valor-generado
-  ```
+```bash
+npx supabase secrets set PUSH_WEBHOOK_SECRET=el-valor-generado
+```
 
-  Y despliega la función (o haz merge en `main` y lo hará `deploy-supabase.yml`):
+Y despliega la función (o haz merge en `main` y lo hará `deploy-supabase.yml`):
 
-  ```bash
-  npx supabase functions deploy send-push
-  ```
+```bash
+npx supabase functions deploy send-push --use-api
+```
+
+> **Si usas base local (Docker):** crea `supabase/functions/.env` (ya está en `.gitignore`) con
+> `PUSH_WEBHOOK_SECRET=el-valor-generado`.
 
 ## Paso 9 — Disparar la push desde la base de datos
 
@@ -635,32 +637,31 @@ create trigger notes_notify_created
   for each row execute function private.notify_note_created();
 ```
 
+Aplícala a tu proyecto de desarrollo (te enseña la migración y pide confirmación: responde `Y`)
+y regenera los tipos. Si usas base local (Docker), en vez de `db:push`: `npm run db:reset`.
+
 ```bash
-npm run db:reset
+npm run db:push
 ```
 
 ```bash
 npm run db:types
 ```
 
-Ahora guarda los dos secretos en Vault. **Local**: abre Supabase Studio
-(`http://127.0.0.1:54423`) → SQL Editor y ejecuta (desde dentro de Docker, tu Mac se llama
-`host.docker.internal`):
-
-```sql
-select vault.create_secret('http://host.docker.internal:54421/functions/v1/send-push', 'send_push_url');
-select vault.create_secret('el-valor-generado', 'send_push_secret');
-```
-
-**Nube**: Supabase Dashboard → SQL Editor, lo mismo con tu URL real:
+Ahora guarda los dos secretos en Vault. Supabase Dashboard → **SQL Editor** y ejecuta, con tu
+Project ref y tu secreto:
 
 ```sql
 select vault.create_secret('https://TU_PROJECT_REF.supabase.co/functions/v1/send-push', 'send_push_url');
 select vault.create_secret('el-valor-generado', 'send_push_secret');
 ```
 
-> `npm run db:reset` borra la base local, **Vault incluido**: tras cada reset, vuelve a ejecutar
-> las dos líneas locales. (En la nube no pasa: allí nunca se hace reset.)
+Se hace una vez por proyecto: cuando crees el de producción (nivel 10), repítelo allí con su URL.
+
+> **Si usas base local (Docker):** hazlo en Studio (`http://127.0.0.1:54423`) → SQL Editor, con
+> la URL `http://host.docker.internal:54421/functions/v1/send-push` (desde dentro de Docker, tu
+> ordenador se llama `host.docker.internal`). `npm run db:reset` borra la base local, **Vault
+> incluido**: tras cada reset, vuelve a ejecutar esas dos líneas.
 
 **Otra forma de disparar**: desde otra Edge Function (por ejemplo, un webhook de pagos del
 [nivel 9](09-cobrar.md)) llama a `send-push` con `fetch` a
@@ -675,26 +676,34 @@ Has añadido código nativo: build nuevo.
 eas build --profile development --platform all
 ```
 
-Arranca la función en local (en otra terminal) y la app:
-
-```bash
-npx supabase functions serve
-```
+Instálalo y arranca la app:
 
 ```bash
 npm start
 ```
 
+(Si usas base local con Docker, arranca antes las funciones en otra terminal con
+`npx supabase functions serve`.)
+
 Pruebas, de la más simple a la completa:
 
-1. **¿Llega una push al móvil?** Perfil → **Activar notificaciones** → Permitir. En Studio → tabla
-   `push_tokens` copia tu token y pruébalo en la herramienta de Expo
-   [expo.dev/notifications](https://expo.dev/notifications).
-2. **¿Funciona la función?** (sustituye el secreto y tu `user_id`, que ves en `push_tokens`):
+1. **¿Llega una push al móvil?** Perfil → **Activar notificaciones** → Permitir. En el Dashboard
+   de Supabase → **Table Editor** → tabla `push_tokens` copia tu token y pruébalo en la
+   herramienta de Expo [expo.dev/notifications](https://expo.dev/notifications).
+2. **¿Funciona la función?** Dashboard → **Edge Functions → send-push** → botón de probar la
+   función (_Test_). Método `POST`, añade la cabecera `x-push-secret` con tu secreto y este body
+   (con tu `user_id`, que ves en `push_tokens`):
 
-   ```bash
-   curl -X POST http://127.0.0.1:54421/functions/v1/send-push -H "Content-Type: application/json" -H "x-push-secret: el-valor-generado" -d '{"user_id":"TU_USER_ID","title":"Hola","body":"Prueba desde curl","url":"/note/new"}'
+   ```json
+   {
+     "user_id": "TU_USER_ID",
+     "title": "Hola",
+     "body": "Prueba desde el Dashboard",
+     "url": "/note/new"
+   }
    ```
+
+   Si algo falla, mira **Edge Functions → send-push → Logs**.
 
 3. **¿Funciona el trigger?** Crea una nota en la app, **sal a la pantalla de inicio del móvil** y
    espera la notificación "Nota guardada". Tócala: se abre esa nota.
@@ -704,7 +713,7 @@ Pruebas, de la más simple a la completa:
 ## ✅ Cómo sé que ha funcionado
 
 - Tras activar, hay una fila tuya en `push_tokens` (y solo tú la ves: RLS).
-- La herramienta de Expo y el `curl` hacen vibrar el móvil.
+- La herramienta de Expo y la prueba desde el Dashboard hacen vibrar el móvil.
 - Con la app **cerrada del todo**, tocar la notificación abre la app **directamente en la nota**.
 - Al cerrar sesión, tu fila desaparece de `push_tokens`; al borrar la cuenta, también.
 
@@ -715,10 +724,12 @@ Pruebas, de la más simple a la completa:
   `app.json` o no hiciste build nuevo tras añadirlo.
 - **Expo responde `InvalidCredentials`**: no subiste la clave FCM v1 a EAS (Android) o no se creó
   la clave de APNs (iOS). Repite el paso 2 y rehaz el build.
-- **El `curl` devuelve 401**: el secreto de la cabecera no coincide con `PUSH_WEBHOOK_SECRET`
-  (en local, ¿reiniciaste `functions serve` tras crear `supabase/functions/.env`?).
-- **El trigger no envía nada**: mira los avisos en los logs de Postgres ("faltan … en Vault") y la
-  tabla `net._http_response` (respuestas de `pg_net`). En local, recuerda que el reset borra Vault.
+- **La prueba de la función devuelve 401**: el secreto de la cabecera no coincide con
+  `PUSH_WEBHOOK_SECRET` (`npx supabase secrets list` para ver que existe). Si usas base local,
+  ¿reiniciaste `functions serve` tras crear `supabase/functions/.env`?
+- **El trigger no envía nada**: mira los avisos en Dashboard → **Logs → Postgres** ("faltan … en
+  Vault") y la tabla `net._http_response` (respuestas de `pg_net`, desde el SQL Editor). Si usas
+  base local, recuerda que `db:reset` borra Vault.
 - **Se guarda el token pero no llega nada en iPhone**: si instalaste un build de antes de
   configurar APNs, reinstala el nuevo. Revisa también que no estés en modo Concentración.
 - **La notificación llega pero no navega**: comprueba que `data.url` empieza por `/` y que la ruta

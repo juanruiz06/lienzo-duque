@@ -70,4 +70,4 @@ console.log(`✅ App renombrada:
 Siguientes pasos:
   1. Cambia el texto "Lienzo" de la pantalla de login (src/app/(auth)/sign-in.tsx).
   2. Cambia el icono y el splash (assets/images/) — ver docs/guias/iconos-y-splash.md.
-  3. Vuelve a arrancar la base local: npm run db:start`);
+  3. Si usas la base local (avanzado): npm run db:start`);

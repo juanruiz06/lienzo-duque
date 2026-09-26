@@ -1,7 +1,8 @@
 # Arquitectura, explicada sin jerga
 
-Lienzo es una app que corre en el móvil (el **cliente**) y habla con un **backend** (Supabase) que
-guarda los datos y decide quién puede ver qué. Este documento explica las piezas, cómo viajan los
+Lienzo es una app que corre en el móvil (el **cliente**) y habla con un **backend** (Supabase: tu
+proyecto en la nube, el que conectaste con `npm run setup`) que guarda los datos y decide quién
+puede ver qué. Este documento explica las piezas, cómo viajan los
 datos y por qué está organizado así.
 
 ## El mapa en una imagen
@@ -108,10 +109,12 @@ tocar un archivo.
 
 - **`migrations/`**: la receta de la base de datos, en pasos numerados por fecha. Nunca se edita un
   paso ya aplicado; se añade uno nuevo. `20260926000000_base.sql` crea perfiles; `…_notes.sql`, notas.
+  Se aplican a tu proyecto con `npm run db:push`.
 - **RLS (Row Level Security)**: reglas por fila. "Puedes leer una nota si `user_id` eres tú."
 - **`functions/`**: Edge Functions, código que corre en el servidor. `delete-account` borra tu
   cuenta, algo que exige una llave de administrador que nunca puede estar en la app.
-- **`seed.sql`**: datos de prueba para la base local.
+- **`seed.sql`**: datos de prueba (el usuario demo) solo para la base local opcional con Docker.
+  En tu proyecto de la nube no se ejecuta: allí creas tus datos de prueba desde la app.
 - **Tipos generados** (`src/types/database.ts`): TypeScript conoce tus tablas y te avisa si
   escribes mal una columna. Se regeneran con `npm run db:types`.
 

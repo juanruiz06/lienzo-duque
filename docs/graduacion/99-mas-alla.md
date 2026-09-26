@@ -66,9 +66,10 @@ policies del bucket), así que Lienzo trae una skill: escribe **`/subir-imagenes
 ## Tests E2E con Maestro
 
 Los tests actuales (Jest) prueban funciones y componentes sueltos. Un test **E2E** (_end to end_)
-abre la app de verdad en un simulador y hace lo que haría una persona: "toca Entrar, escribe el
-email, comprueba que aparece la lista". **Maestro** lo hace con archivos YAML muy legibles, y EAS
-Workflows puede ejecutarlos en la nube en cada PR. Útil cuando ya tienes flujos críticos (registro,
+abre la app de verdad en un emulador de Android o un simulador de iPhone y hace lo que haría una
+persona: "toca Entrar, escribe el email, comprueba que aparece la lista". **Maestro** lo hace con
+archivos YAML muy legibles, y EAS Workflows puede ejecutarlos en la nube en cada PR (así no
+necesitas un Mac para probar en iOS). Útil cuando ya tienes flujos críticos (registro,
 pago) que no quieres romper nunca.
 → [Maestro](https://docs.maestro.dev) ·
 [EAS Workflows: tests E2E](https://docs.expo.dev/eas/workflows/examples/e2e-tests/)

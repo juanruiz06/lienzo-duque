@@ -210,8 +210,11 @@ revoke execute on function public.is_premium() from public, anon;
 grant execute on function public.is_premium() to authenticated;
 ```
 
+Aplícala a tu proyecto de desarrollo (te enseña la migración y pide confirmación: responde `Y`)
+y regenera los tipos. Si usas base local (Docker), en vez de `db:push`: `npm run db:reset`.
+
 ```bash
-npm run db:reset
+npm run db:push
 ```
 
 ```bash
@@ -348,7 +351,7 @@ verify_jwt = false
 Genera un valor aleatorio para la cabecera:
 
 ```bash
-openssl rand -hex 32
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 Guárdalo, junto con la clave secreta de RevenueCat (Project settings → API keys → _Secret API
@@ -363,7 +366,7 @@ npx supabase secrets set REVENUECAT_SECRET_API_KEY=sk_TU_CLAVE_SECRETA
 ```
 
 ```bash
-npx supabase functions deploy revenuecat-webhook
+npx supabase functions deploy revenuecat-webhook --use-api
 ```
 
 En RevenueCat → **Integrations → Webhooks → Add**: URL

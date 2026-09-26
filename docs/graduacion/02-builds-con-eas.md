@@ -13,8 +13,8 @@
 >
 > **Tiempo estimado:** 1 hora (la mayor parte es esperar a que compile).
 >
-> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md) (la app instalada tiene que hablar con un
-> Supabase accesible desde internet, no con el de tu ordenador).
+> **Requisitos:** Nivel 0 con tu Supabase en la nube (`npm run setup`): la app instalada habla con
+> ese proyecto. Recomendable el [Nivel 1](01-nube-github-y-ci.md) para tener el código en GitHub.
 
 ## Conceptos en una frase
 
@@ -54,7 +54,7 @@ npm run rename -- "Nombre De Tu App" com.tunombre.tuapp
 ```
 
 Si lo cambias, el esquema de enlaces también cambia (por ejemplo `tuapp://`): actualiza la Site
-URL y las Redirect URLs de Supabase (nivel 1, paso 7).
+URL y las Redirect URLs de Supabase (nivel 1, paso 2).
 
 ### 2. Crea tu cuenta de Expo
 
@@ -98,8 +98,10 @@ a qué Supabase conectarse. Las variables se guardan en EAS, por **entorno**: `d
 `preview` y `production`. Cada perfil de `eas.json` ya dice qué entorno usa (el campo
 `"environment"`), así que no tienes que tocar `eas.json`.
 
-Sube la URL y la publishable key de Supabase **de la nube** a los tres entornos. Son valores
-**públicos** (`EXPO_PUBLIC_*`), por eso la visibilidad es `plaintext`:
+Sube la URL y la publishable key de Supabase (las mismas de tu `.env`) a los tres entornos. Son
+valores **públicos** (`EXPO_PUBLIC_*`), por eso la visibilidad es `plaintext`. Cuando crees tu
+proyecto de producción ([nivel 10](10-escalar-y-pagar-mas.md)), cambiarás las del entorno
+`production`:
 
 ```bash
 eas env:set --name EXPO_PUBLIC_SUPABASE_URL --value https://TU_PROJECT_REF.supabase.co --environment development --environment preview --environment production --visibility plaintext
@@ -145,8 +147,9 @@ eas build --profile development --platform android
 > tardar de horas a un par de días. Además, cada iPhone tiene que estar **registrado** antes del
 > build (máximo 100 iPhones al año por cuenta).
 >
-> Si todavía no quieres pagar: usa Android, o el **simulador de iOS** en un Mac (no necesita
-> cuenta de Apple; pídele a Claude un build con `"ios": { "simulator": true }`).
+> Si todavía no quieres pagar: usa Android (gratis), o sigue probando en el iPhone con **Expo Go**
+> mientras no necesites librerías nativas. (El simulador de iOS solo existe en Mac, así que desde
+> Windows no es una opción.)
 
 Si tienes la cuenta de Apple, registra tu iPhone:
 
@@ -240,14 +243,16 @@ así que haz la primera de iOS desde tu terminal (paso 7).
 - **"Configuración inválida" nada más abrir la build:** faltan las variables en el entorno EAS que
   usa ese perfil. Revisa con `eas env:list --environment development` (o `preview`) y vuelve a
   compilar: las variables se meten en la app **al compilar**.
-- **La app se conecta a `127.0.0.1` y no carga nada:** subiste a EAS los valores de Supabase
-  local. En el móvil `127.0.0.1` es el propio móvil. Usa los de la nube.
+- **La app se conecta a `127.0.0.1` y no carga nada:** subiste a EAS los valores de la base local
+  con Docker (modo avanzado). En el móvil `127.0.0.1` es el propio móvil. Usa los de tu proyecto
+  de la nube (`https://….supabase.co`).
 - **"expo-dev-client is not installed":** te saltaste el paso 5.
 - **iOS: "Untrusted developer" o la app no abre:** falta activar el Modo desarrollador (paso 8).
 - **iOS: "Unable to install" o el QR no hace nada:** ese iPhone no estaba registrado cuando se hizo
   el build. `eas device:create`, y compila otra vez.
-- **El build lleva mucho en cola:** es el plan Free. Espera, o compila en local si tienes el
-  entorno (Android Studio/Xcode) con `eas build --local` (avanzado).
+- **El build lleva mucho en cola:** es el plan Free. Espera, o mira el plan Starter (nivel 10).
+  Compilar en tu propio ordenador (`eas build --local`) exige macOS o Linux, así que en Windows no
+  es una opción práctica.
 - **"You have reached your build limit":** has gastado los builds del mes. Espera al mes
   siguiente o mira el plan Starter. Consejo: no compiles para "probar un cambio de JavaScript"; eso
   se prueba con `npx expo start --dev-client`.

@@ -1,8 +1,9 @@
 # Niveles de graduación
 
-Lienzo arranca en el **Nivel 0**: todo funciona en tu ordenador, sin cuentas y sin pagar nada.
-La base de datos corre en local (Supabase dentro de Docker), la app se abre en el simulador o en
-Expo Go y nadie más que tú puede usarla. Es el sitio perfecto para aprender y construir.
+Lienzo arranca en el **Nivel 0**: tu ordenador con Windows, la app en tu móvil con **Expo Go** y
+los datos en un proyecto **gratuito de Supabase en la nube**, conectado con `npm run setup`. Cero
+euros y sin Mac. Ese proyecto es tu base de **desarrollo**: solo la usas tú mientras construyes.
+Es el sitio perfecto para aprender.
 
 Un día querrás que la app viva en internet, que la usen tus amigos, saber cuándo falla o
 publicarla en las tiendas. Cada una de esas cosas es un **nivel de graduación**: una guía que
@@ -23,33 +24,35 @@ Tres ideas para leer esta carpeta:
 
 ## Los niveles
 
-| Nivel | Guía                                             | Qué añade                                                                            | Qué desbloquea                                                             |
-| ----- | ------------------------------------------------ | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| 0     | [Empieza aquí](../00-empieza-aqui.md)            | Todo local y gratis (ya lo tienes)                                                   | Construir y probar la app en tu ordenador                                  |
-| 1     | [Nube, GitHub y CI](01-nube-github-y-ci.md)      | Supabase en la nube (plan gratis) + repo en GitHub + comprobaciones automáticas (CI) | Que la app funcione fuera de tu wifi; copia de tu código; no romper `main` |
-| 2     | [Builds con EAS](02-builds-con-eas.md)           | Tu propia app instalable (development build) y distribución interna a móviles reales | Librerías nativas, probar en tu móvil sin Expo Go, pasársela a amigos      |
-| 3     | [Observabilidad](03-observabilidad.md)           | Sentry (errores) + PostHog (analítica de uso)                                        | Enterarte de los fallos antes que tus usuarios; saber qué se usa           |
-| 4     | [Emails con Resend](04-emails-con-resend.md)     | SMTP propio para Supabase Auth + emails transaccionales + dominio propio             | Registro y "olvidé mi contraseña" con usuarios reales                      |
-| 5     | [Publicar en tiendas](05-publicar-en-tiendas.md) | App Store + Google Play                                                              | Que cualquiera descargue tu app                                            |
-| 6     | [Login social](06-login-social.md)               | Sign in with Apple / Google                                                          | Registro en un toque                                                       |
-| 7     | [Actualizaciones OTA](07-actualizaciones-ota.md) | EAS Update                                                                           | Arreglar fallos de JavaScript sin pasar por la revisión de las tiendas     |
-| 8     | [Notificaciones push](08-notificaciones-push.md) | Push con `expo-notifications`                                                        | Avisar a tus usuarios aunque la app esté cerrada                           |
-| 9     | [Cobrar](09-cobrar.md)                           | Pagos dentro de la app (RevenueCat) / Stripe                                         | Suscripciones y compras                                                    |
-| 10    | [Escalar y pagar más](10-escalar-y-pagar-mas.md) | Supabase Pro, planes de pago, entornos staging/producción, backups                   | Crecer sin miedo a perder datos                                            |
-| 99    | [Más allá](99-mas-alla.md)                       | Temas avanzados                                                                      | Lo que necesites cuando lo necesites                                       |
+| Nivel | Guía                                             | Qué añade                                                                              | Qué desbloquea                                                                  |
+| ----- | ------------------------------------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 0     | [Empieza aquí](../00-empieza-aqui.md)            | Windows + Expo Go + Supabase Free en la nube (con `npm run setup`), 0 € (ya lo tienes) | Construir y probar la app en tu móvil                                           |
+| 1     | [GitHub y CI](01-nube-github-y-ci.md)            | Repo en GitHub + comprobaciones automáticas (CI) + workflow de despliegue a Supabase   | Copia de tu código fuera del ordenador; no romper `main`; desplegar con un clic |
+| 2     | [Builds con EAS](02-builds-con-eas.md)           | Tu propia app instalable (development build) y distribución interna a móviles reales   | Librerías nativas, probar en tu móvil sin Expo Go, pasársela a amigos           |
+| 3     | [Observabilidad](03-observabilidad.md)           | Sentry (errores) + PostHog (analítica de uso)                                          | Enterarte de los fallos antes que tus usuarios; saber qué se usa                |
+| 4     | [Emails con Resend](04-emails-con-resend.md)     | SMTP propio para Supabase Auth + emails transaccionales + dominio propio               | Registro y "olvidé mi contraseña" con usuarios reales                           |
+| 5     | [Publicar en tiendas](05-publicar-en-tiendas.md) | App Store + Google Play                                                                | Que cualquiera descargue tu app                                                 |
+| 6     | [Login social](06-login-social.md)               | Sign in with Apple / Google                                                            | Registro en un toque                                                            |
+| 7     | [Actualizaciones OTA](07-actualizaciones-ota.md) | EAS Update                                                                             | Arreglar fallos de JavaScript sin pasar por la revisión de las tiendas          |
+| 8     | [Notificaciones push](08-notificaciones-push.md) | Push con `expo-notifications`                                                          | Avisar a tus usuarios aunque la app esté cerrada                                |
+| 9     | [Cobrar](09-cobrar.md)                           | Pagos dentro de la app (RevenueCat) / Stripe                                           | Suscripciones y compras                                                         |
+| 10    | [Escalar y pagar más](10-escalar-y-pagar-mas.md) | Supabase Pro, planes de pago, proyecto de producción, backups                          | Crecer sin miedo a perder datos                                                 |
+| 99    | [Más allá](99-mas-alla.md)                       | Temas avanzados                                                                        | Lo que necesites cuando lo necesites                                            |
 
 ## Orden recomendado
 
 No es obligatorio, pero es el camino que menos sorpresas da:
 
-1. **Nivel 1** en cuanto quieras enseñar la app a alguien o tener tu código a salvo fuera de tu
-   ordenador.
+1. **Nivel 1** en cuanto quieras tener tu código a salvo fuera de tu ordenador y que alguien (el
+   CI) revise cada cambio antes de que llegue a `main`. Es gratis y cuanto antes, mejor.
 2. **Nivel 2** cuando quieras la app en tu móvil "de verdad" o necesites una librería que Expo Go
    no trae.
 3. **Nivel 3** antes de que la use gente que no seas tú (Sentry funciona mejor con el nivel 2).
 4. **Nivel 4** antes de abrir el registro a desconocidos: sin él, los emails de confirmación y
    de recuperar contraseña no les llegarán.
-5. **Nivel 5** para publicar. A partir de aquí, 6–10 en el orden que pida tu app.
+5. **Nivel 5** para publicar. Justo antes, crea tu proyecto de Supabase de producción
+   ([nivel 10, sección 2](10-escalar-y-pagar-mas.md#2-entornos-separados-desarrollo-y-producción)).
+   A partir de aquí, 6–10 en el orden que pida tu app.
 
 Los niveles 3 y 4 son independientes entre sí: puedes hacerlos en cualquier orden.
 
@@ -60,7 +63,7 @@ Los niveles 3 y 4 son independientes entre sí: puedes hacerlos en cualquier ord
 
 | Servicio                    | Gratis                                                                                                                        | De pago (desde)                                               | Nivel |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----- |
-| Supabase                    | 2 proyectos activos, 500 MB de BD, 1 GB de archivos, 50.000 usuarios activos/mes; se pausa tras 1 semana sin uso; sin backups | Pro: ~25 $/mes por organización (8 GB de BD, backups diarios) | 1, 10 |
+| Supabase                    | 2 proyectos activos, 500 MB de BD, 1 GB de archivos, 50.000 usuarios activos/mes; se pausa tras 1 semana sin uso; sin backups | Pro: ~25 $/mes por organización (8 GB de BD, backups diarios) | 0, 10 |
 | GitHub                      | Repos privados ilimitados, 2.000 min/mes de Actions                                                                           | Pro: ~4 $/mes (reglas de rama obligatorias en repos privados) | 1     |
 | Expo / EAS                  | 15 builds Android + 15 iOS al mes (cola lenta); updates para 1.000 usuarios/mes                                               | Starter: ~19 $/mes                                            | 2, 7  |
 | Apple Developer Program     | —                                                                                                                             | 99 $/año (obligatorio para instalar en iPhone y publicar)     | 2, 5  |

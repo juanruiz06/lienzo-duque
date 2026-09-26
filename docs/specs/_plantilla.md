@@ -1,6 +1,6 @@
 # NNN — Nombre de la feature
 
-> Estado: borrador · Fecha: AAAA-MM-DD · Nivel requerido: 0 (local) / N (si necesita algo de graduación)
+> Estado: borrador · Fecha: AAAA-MM-DD · Nivel requerido: 0 (gratis) / N (si necesita algo de graduación)
 
 ## Qué y por qué
 

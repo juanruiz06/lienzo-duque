@@ -47,4 +47,4 @@ Caso: $ARGUMENTS
 6. **Borrado de cuenta** (INV-STORE-1): los archivos de Storage NO se borran en cascada. Añade a
    `supabase/functions/delete-account/index.ts` el borrado de la carpeta del usuario
    (`admin.storage.from('images').list(userId)` + `remove([...])`) antes de `deleteUser`.
-7. Verifica: dos usuarios; B no puede leer la ruta de A (la URL firmada de A no se puede generar desde B). `npm run check:rls`, `npm run check`.
+7. Verifica: dos usuarios; B no puede leer la ruta de A (la URL firmada de A no se puede generar desde B). `npm run check` (y `check:rls` en el CI).

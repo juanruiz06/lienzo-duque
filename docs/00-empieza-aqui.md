@@ -1,156 +1,106 @@
 # Empieza aquí
 
-Esta guía te lleva de "tengo el repo" a "veo la app en mi móvil con mis datos". Unos 30-45
-minutos la primera vez (casi todo es esperar descargas). Si usas Claude Code, puedes escribir
-**`/empezar`** y te acompaña paso a paso.
+> **La forma fácil: abre [`SETUP.html`](../SETUP.html) con doble clic.** Es una guía visual paso a
+> paso para Windows, con botones de copiar y casillas que recuerdan por dónde vas. Este documento
+> es el resumen en texto de lo mismo, y explica qué pasa por debajo.
 
-> **Nivel 0 — Local.** Todo corre en tu ordenador y es gratis. La app habla con una base de
-> datos que vive en tu máquina. Cuando quieras que la usen otras personas, sigue los
-> [niveles de graduación](graduacion/README.md).
+**Nivel 0 — Todo gratis.** Tu app corre en tu móvil con **Expo Go**, el código vive en tu
+ordenador, y los datos en un proyecto **gratuito de Supabase** en internet. No necesitas Mac,
+ni Docker, ni tarjeta de crédito. Cuando quieras publicarla o enseñarla a más gente, sigue los
+[niveles de graduación](graduacion/README.md).
 
 ---
 
-## 1. Instala las herramientas (una sola vez)
+## Los 10 pasos, resumidos
 
-| Herramienta               | Para qué                               | Dónde                                                           |
-| ------------------------- | -------------------------------------- | --------------------------------------------------------------- |
-| **Node.js 22 (LTS)**      | Ejecuta las herramientas de JavaScript | https://nodejs.org                                              |
-| **Git**                   | Guarda el historial de cambios         | https://git-scm.com (en Mac viene con Xcode Command Line Tools) |
-| **Docker Desktop**        | Hace funcionar la base de datos local  | https://www.docker.com/products/docker-desktop                  |
-| **VS Code** (o Cursor)    | Editor de código                       | https://code.visualstudio.com                                   |
-| **Claude Code**           | Tu compañero de programación           | https://claude.com/claude-code                                  |
-| **Expo Go** (en tu móvil) | Abre la app sin compilar nada          | App Store / Google Play                                         |
+| #   | Qué                                                                                | Para qué                                                |
+| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 1   | Instalar **Node.js LTS** (nodejs.org, instalador `.msi`)                           | El "motor" de las herramientas                          |
+| 2   | Instalar **Git for Windows** (git-scm.com, todo por defecto)                       | Historial de cambios                                    |
+| 3   | Instalar **Visual Studio Code**                                                    | Editor de código con terminal integrada                 |
+| 4   | Instalar **Expo Go** en el móvil                                                   | Ver la app mientras la construyes                       |
+| 5   | Poner el proyecto en `C:\proyectos\…` (**fuera de OneDrive**) y abrirlo en VS Code | OneDrive se atasca con los miles de archivos de una app |
+| 6   | `npm install`                                                                      | Descarga las librerías de la app                        |
+| 7   | Crear un proyecto **Free** en supabase.com (guarda la _Database password_)         | La base de datos y el login                             |
+| 8   | `npm run setup`                                                                    | Conecta la app con tu Supabase y crea las tablas        |
+| 9   | `npm start` y escanear el QR con Expo Go                                           | Ver la app en el móvil                                  |
+| 10  | Cambiar un texto y guardar                                                         | Comprobar que el móvil se actualiza solo                |
 
-Opcional: **Xcode** (solo Mac, para el simulador de iPhone) y/o **Android Studio** (para el
-emulador de Android). No son imprescindibles: con Expo Go en tu móvil basta para empezar.
+Todos los comandos se escriben en la **terminal de VS Code** (menú _Terminal → New Terminal_).
 
-Comprueba en una terminal:
+## Qué hace `npm run setup` por ti
 
-```bash
-node --version
-```
+1. Te pide la **Project URL** y la **Publishable key** de tu proyecto de Supabase y las guarda en
+   `.env` (un archivo de configuración de tu ordenador que no se sube a git). Todo lo que empieza
+   por `EXPO_PUBLIC_` acaba dentro de la app, por eso **ahí nunca van claves secretas**: si pegas
+   la _Secret key_ por error, el asistente te avisa.
+2. Inicia sesión en Supabase (se abre el navegador) y **enlaza** esta carpeta con tu proyecto.
+3. Aplica las **migraciones** (`supabase/migrations/`): crea las tablas `profiles` y `notes` con
+   sus reglas de seguridad (RLS: cada usuario solo ve sus datos).
+4. Te guía para desactivar _Confirm email_ mientras desarrollas.
+5. Sube la **Edge Function** `delete-account` (el botón "Borrar mi cuenta").
 
-Debe decir `v22.x` (o superior).
+Se puede repetir sin miedo. Para ver qué haría sin cambiar nada: `npm run setup -- --dry-run`.
 
-## 2. Descarga las dependencias
-
-En la carpeta del proyecto:
-
-```bash
-npm install
-```
-
-Crea la carpeta `node_modules/` con todas las librerías. Tarda 1-3 minutos.
-
-## 3. Arranca la base de datos local
-
-Abre **Docker Desktop** (tiene que estar en marcha) y ejecuta:
-
-```bash
-npm run db:start
-```
-
-La primera vez descarga unas imágenes (varios minutos). Al terminar imprime algo así:
-
-```
-API_URL: http://127.0.0.1:54421
-STUDIO_URL: http://127.0.0.1:54423
-PUBLISHABLE_KEY: sb_publishable_...
-```
-
-Qué acaba de pasar: Supabase ha creado una base de datos Postgres en tu ordenador, ha aplicado
-las **migraciones** (`supabase/migrations/`: las tablas `profiles` y `notes` con sus reglas de
-seguridad) y ha cargado el **seed** (`supabase/seed.sql`: un usuario demo con dos notas).
-
-Abre **Studio** (http://127.0.0.1:54423) para ver las tablas como si fueran hojas de cálculo.
-
-## 4. Configura el `.env`
-
-```bash
-cp .env.example .env
-```
-
-Abre `.env` y pega los valores del paso anterior:
-
-```
-EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54421
-EXPO_PUBLIC_SUPABASE_KEY=sb_publishable_...
-```
-
-`.env` guarda configuración de TU máquina y no se sube a git. Todo lo que empieza por
-`EXPO_PUBLIC_` acaba dentro de la app, así que **ahí nunca van claves secretas**.
-
-Comprueba que todo está bien:
-
-```bash
-npm run doctor
-```
-
-## 5. Abre la app
+## El día a día
 
 ```bash
 npm start
 ```
 
-Se queda funcionando (es **Metro**, el servidor que envía tu código a la app). Verás un QR y un menú:
+Escanea el QR con Expo Go. Cada vez que guardas un archivo, el móvil se actualiza. Para parar:
+`Ctrl + C`. Otros comandos útiles:
 
-- **Móvil con Expo Go**: escanea el QR (iPhone: con la cámara; Android: desde Expo Go).
-  ⚠️ Con la base de datos local, tu móvil no entiende `127.0.0.1` (para él significa "yo mismo").
-  Cambia en `.env` la URL por la IP de tu ordenador (te la dice `npm run doctor`), por ejemplo
-  `http://192.168.1.20:54421`, y reinicia `npm start`. Móvil y ordenador en la misma wifi.
-- **Simulador de iPhone**: pulsa `i` (necesita Xcode).
-- **Emulador de Android**: pulsa `a` (necesita Android Studio).
-- **Navegador**: pulsa `w`. Rápido para probar, pero la app es para móvil: pruébala también ahí.
+| Comando                    | Qué hace                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| `npm run start:tunnel`     | Como `npm start`, pero funciona aunque la wifi bloquee la conexión móvil–ordenador     |
+| `npm run check`            | Revisa tipos, estilo, formato y tests. Tiene que salir en verde antes de subir cambios |
+| `npm run doctor`           | Diagnóstico: te dice qué falta o está mal configurado                                  |
+| `npm run db:new -- nombre` | Crea una migración nueva (mejor pídeselo a Claude: `/nueva-tabla`)                     |
+| `npm run db:push`          | Aplica las migraciones nuevas a tu base de datos de Supabase                           |
+| `npm run db:types`         | Actualiza los tipos TypeScript tras cambiar la base de datos                           |
 
-Entra con el usuario de prueba:
+## Tu proyecto de Supabase es tu "base de desarrollo"
 
-- Email: `demo@lienzo.test`
-- Contraseña: `lienzo-demo-1234`
+Mientras no tengas usuarios reales, ese proyecto gratuito es tu zona de pruebas: puedes crear
+tablas, borrar datos y registrarte con emails de prueba sin miedo. **Antes de publicar** en las
+tiendas, crearás un segundo proyecto para producción, limpio (ver
+[nivel 10](graduacion/10-escalar-y-pagar-mas.md), sección de entornos).
 
-Deberías ver dos notas. Crea una, edítala, bórrala. Ve a Perfil y cámbiate el nombre. Regístrate
-con otro email (en local no hace falta confirmar) y comprueba que ese usuario **no** ve las notas
-del demo: eso es la seguridad por filas (RLS) funcionando.
-
-**Magia del día a día**: con `npm start` en marcha, cambia un texto en
-`src/app/(auth)/sign-in.tsx`, guarda, y mira cómo la app se actualiza sola en un segundo.
-
-## 6. Comprueba la calidad
-
-```bash
-npm run check
-```
-
-Pasa 4 controles: tipos (TypeScript), estilo de código (ESLint), formato (Prettier) y tests
-(Jest). Tiene que salir todo en verde antes de subir cambios. Lo mismo lo comprueba GitHub
-automáticamente en cada Pull Request.
-
-## 7. Hazla tuya
-
-Elige el nombre de tu app y un identificador único (dominio al revés, en minúsculas):
-
-```bash
-npm run rename -- "Mi App" com.minombre.miapp
-```
-
-⚠️ El identificador (`com.minombre.miapp`) no se puede cambiar después de publicar en las tiendas.
-
----
-
-## Y ahora qué
-
-1. Lee [arquitectura.md](arquitectura.md) (15 minutos) para entender cómo encaja todo.
-2. Lee [flujo-de-trabajo.md](flujo-de-trabajo.md) para trabajar con ramas, PRs y Claude.
-3. Piensa tu primera feature y pídele a Claude: `/planificar quiero que los usuarios puedan …`
-4. Cuando quieras enseñarla a otros: [niveles de graduación](graduacion/README.md).
+Límites del plan gratis que conviene conocer: si nadie usa el proyecto en una semana, Supabase lo
+**pausa** (entras al panel y pulsas _Restore_, no se pierde nada), y los emails automáticos
+(recuperar contraseña) están muy limitados hasta el [nivel 4](graduacion/04-emails-con-resend.md).
 
 ## Problemas típicos
 
-| Síntoma                                    | Causa y solución                                                                                          |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| La app dice **"Configuración inválida"**   | Falta `.env` o está vacío. Rellénalo y reinicia `npm start` (Ctrl+C y otra vez).                          |
-| **"Network request failed"** en el móvil   | Estás usando `127.0.0.1` en un móvil físico, o distinta wifi, o la base está parada (`npm run db:start`). |
-| `npm run db:start` falla                   | Docker Desktop no está abierto, o los puertos 544xx están ocupados por otro proyecto.                     |
-| Expo Go dice **"Project is incompatible"** | Actualiza Expo Go desde la tienda (debe ser compatible con el SDK 57).                                    |
-| Cambié el `.env` y no se nota              | Las variables se leen al arrancar: para `npm start` y vuelve a lanzarlo.                                  |
-| Quiero empezar la base de cero             | `npm run db:reset` (borra los datos locales y recarga migraciones + seed).                                |
-| Otra cosa                                  | `npm run doctor`, y si no, pregúntale a Claude con el texto del error.                                    |
+| Síntoma                                      | Causa y solución                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `npm` / `node` "no se reconoce"              | La terminal se abrió antes de instalar Node. Cierra VS Code y ábrelo de nuevo.             |
+| "la ejecución de scripts está deshabilitada" | En la terminal: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, responde `S`.       |
+| La app dice **"Configuración inválida"**     | Falta el `.env`: `npm run setup`, y reinicia `npm start`.                                  |
+| El móvil no conecta con el ordenador         | Misma wifi y permitir Node en el Firewall (redes privadas). Si no: `npm run start:tunnel`. |
+| Expo Go: **"Project is incompatible"**       | Actualiza Expo Go desde la tienda.                                                         |
+| "Sin conexión" al entrar en la app           | El proyecto de Supabase está pausado: panel de Supabase → _Restore_.                       |
+| "Confirma tu email" al registrarte           | Supabase → Authentication → Sign In / Providers → Email → desactiva _Confirm email_.       |
+| Otra cosa                                    | `npm run doctor`, y si no, pregúntale a Claude pegando el error.                           |
+
+---
+
+## Anexo: base de datos local con Docker (avanzado, opcional)
+
+Hay una segunda forma de trabajar: con una copia de Supabase **dentro de tu ordenador**, usando
+Docker. Ventajas: sin límites, sin internet, y puedes romperla y recrearla con un comando. Pega:
+en Windows exige instalar Docker Desktop (con WSL2) y unos 4 GB de RAM libres. **No hace falta
+para nada al principio**; el CI de GitHub ya prueba tus migraciones en una base local por ti.
+
+Si algún día la quieres:
+
+1. Instala [Docker Desktop](https://www.docker.com/products/docker-desktop) y ábrelo.
+2. `npm run db:start` (la primera vez tarda varios minutos). Imprime `API_URL` y `PUBLISHABLE_KEY`.
+3. En `.env`, pon esos valores. En un **móvil físico**, en vez de `127.0.0.1` usa la IP de tu
+   ordenador (te la dice `npm run doctor`), p. ej. `http://192.168.1.20:54421`.
+4. Usuario de prueba creado por `supabase/seed.sql`: `demo@lienzo.test` / `lienzo-demo-1234`.
+5. Comandos: `npm run db:reset` (recrear desde cero), `npm run db:stop`, `npm run check:rls`
+   (reglas de seguridad). Studio (ver las tablas): http://127.0.0.1:54423.
+
+Los puertos son 544xx (no los 543xx habituales) para no chocar con otros proyectos Supabase.

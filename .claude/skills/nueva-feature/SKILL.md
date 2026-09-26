@@ -20,7 +20,7 @@ patrón, cambiando solo lo necesario. Lee `AGENTS.md` (sección "Cómo fluyen lo
 ## 1. Base de datos → skill `/nueva-tabla`
 
 Referencia: `supabase/migrations/20260926000100_notes.sql`. Resultado: migración nueva aplicada en
-local, `npm run db:types` hecho, `npm run check:rls` en verde.
+aplicada (nube: `npm run db:push`; local: `npm run db:reset`) y `npm run db:types` hecho.
 
 ## 2. Validación
 
@@ -59,10 +59,11 @@ Mínimo: validación (`src/utils/__tests__/validation.test.ts`) y capa api
 
 ```bash
 npm run check
-npm run check:rls
 ```
 
-Y **prueba el flujo en la app** (`npm start`): crear, ver, editar, borrar; con dos usuarios
+(`npm run check:rls` si trabaja con base local; si no, lo comprueba el CI en el PR.)
+
+Y **prueba el flujo en la app** (`npm start`, en su móvil con Expo Go; tú puedes mirar antes en web con `w`): crear, ver, editar, borrar; con dos usuarios
 distintos si los datos son privados (uno no debe ver los del otro). Si hay datos por usuario,
 comprueba que borrar la cuenta los borra (INV-STORE-1: FK con `on delete cascade`).
 

@@ -114,22 +114,30 @@ Claude lee automáticamente `CLAUDE.md` → `AGENTS.md` (el mapa del proyecto) y
 | Tests                                  | `/escribir-tests <qué>`      |
 | Revisar la seguridad                   | `/revisar-seguridad`         |
 | Subir mis cambios                      | `/preparar-pr`               |
-| Siguiente nivel (nube, tiendas…)       | `/graduar`                   |
+| Siguiente nivel (GitHub, tiendas…)     | `/graduar`                   |
 | Sacar versión a las tiendas            | `/publicar`                  |
 | Arreglo rápido sin pasar por la tienda | `/actualizar-ota`            |
 | Actualizar Expo                        | `/actualizar-expo <versión>` |
 
-## Base de datos: local vs nube
+## Base de datos: desarrollo vs producción
 
-|                 | Local (`npm run db:*`)              | Nube (supabase.com)                           |
-| --------------- | ----------------------------------- | --------------------------------------------- |
-| Para qué        | Desarrollar y probar sin miedo      | Usuarios reales                               |
-| Se puede romper | Sí, `npm run db:reset` y como nueva | **No.** Solo cambia con migraciones revisadas |
-| Datos           | Seed de prueba                      | Reales                                        |
+|                            | Tu proyecto de desarrollo (nube, Free)                  | Producción (cuando publiques)                                                            |
+| -------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Qué es                     | El proyecto que conectaste con `npm run setup`          | Un proyecto nuevo y limpio ([nivel 10](graduacion/10-escalar-y-pagar-mas.md), sección 2) |
+| Para qué                   | Desarrollar y probar sin miedo                          | Usuarios reales                                                                          |
+| Se puede romper            | Sí: datos y usuarios de prueba, bórralos cuando quieras | **No.** Solo cambia con migraciones revisadas                                            |
+| Datos                      | De prueba (los que creas tú desde la app)               | Reales                                                                                   |
+| Cómo le llegan los cambios | `npm run db:push` desde tu ordenador                    | El workflow `deploy-supabase.yml` al mergear en `main`                                   |
 
-Cambios de esquema: migración nueva → probar en local (`db:reset`) → PR → al mergear, el workflow
-`deploy-supabase.yml` la aplica en la nube (o `npm run db:push` a mano). Nunca crees tablas desde el
-dashboard de la nube (INV-DB-7).
+Cambios de esquema: migración nueva (`/nueva-tabla`) → `npm run db:push` a tu proyecto de
+desarrollo (te enseña la migración y pide confirmación) → `npm run db:types` → probar en el móvil
+→ PR (el CI crea una base desde cero con todas tus migraciones, revisa las reglas RLS y que los
+tipos están al día) → merge. Cuando tengas producción, el merge se la aplica allí. Nunca crees
+tablas desde el dashboard (INV-DB-7).
+
+> **Si usas base local (Docker, opcional):** `npm run db:reset` la recrea desde cero con las
+> migraciones y el seed (usuario demo), y `npm run check:rls` revisa las reglas en tu ordenador.
+> En modo nube, `check:rls` lo ejecuta el CI en cada PR.
 
 ## Dos consejos que ahorran disgustos
 

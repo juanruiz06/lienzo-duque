@@ -79,7 +79,7 @@ jobs:
       # Si cambiaste una migración pero olvidaste `npm run db:types`, esto lo detecta.
       - name: Comprobar que src/types/database.ts está al día
         run: |
-          npm run db:types
+          npm run db:types -- --local
           if ! git diff --exit-code src/types/database.ts; then
             echo "::error::src/types/database.ts no está al día. Ejecuta 'npm run db:types' y haz commit."
             exit 1

@@ -38,8 +38,11 @@ tabla protegida con RLS (eso se hace desde `src/api` directamente).
    - Nube: `npx supabase secrets set NOMBRE=valor` (pide confirmación: es una acción en la nube).
 5. Llamarla desde la app: función en `src/api/…` con `supabase.functions.invoke('<nombre>', { body })`
    - hook en `src/hooks`. Errores con `AppError` y mensaje para el usuario.
-6. Probar en local: las funciones se sirven con `npm run db:start`; para ver logs en vivo:
-   `npx supabase functions serve`. Probar desde la app o con `curl` + token de un usuario de prueba.
+6. Probar:
+   - **Modo nube (el normal)**: despliégala en su proyecto de desarrollo (pide OK):
+     `npx supabase functions deploy <nombre> --use-api` (`--use-api` = sin Docker). Pruébala desde
+     la app y mira los logs en Supabase → Edge Functions → la función → Logs.
+   - **Modo local**: se sirven solas con `npm run db:start`; logs en vivo con `npx supabase functions serve`.
 7. Desplegar (solo si lo piden): `npx supabase functions deploy <nombre>` — o al mergear en `main`
    con el workflow `deploy-supabase.yml` si está configurado.
 

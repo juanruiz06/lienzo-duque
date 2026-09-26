@@ -1,0 +1,8 @@
+# Finales de línea LF en todos los sistemas. Sin esto, Git en Windows convierte a CRLF al
+# descargar y `npm run check` (Prettier) marcaría todos los archivos como mal formateados.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.svg text eol=lf

@@ -14,6 +14,9 @@ npm run check:secrets
 npm run check:rls
 ```
 
+(`check:rls` necesita la base local; en modo nube dirá que lo hace el CI. En ese caso usa además
+Supabase → **Advisors → Security** y revisa las migraciones a mano, abajo.)
+
 ## 2. Revisión manual de la base (lee todas las migraciones)
 
 Para cada tabla de `public`, escribe en castellano quién puede **leer, crear, editar y borrar**
@@ -26,7 +29,7 @@ según sus policies, y compáralo con lo que debería ser. Señales de alarma:
 - Tablas sin FK `on delete cascade` a `auth.users` → el borrado de cuenta deja datos (INV-STORE-1).
 - Buckets de Storage públicos o policies sin `storage.foldername(name)[1] = auth.uid()`.
 
-Prueba práctica con dos usuarios en la base local (app o MCP `supabase-local`): B intenta leer,
+Prueba práctica con dos usuarios (en la app, o en el SQL Editor / MCP `supabase-local`): B intenta leer,
 editar y borrar datos de A por id. Todo debe fallar o devolver vacío.
 
 ## 3. Edge Functions

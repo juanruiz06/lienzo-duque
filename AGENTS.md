@@ -39,25 +39,40 @@ Instala dependencias SIEMPRE con `npx expo install <paquete>` (elige la versión
 SDK), nunca con `npm install <paquete>` a secas. Excepción: herramientas de desarrollo puras
 (`npm install -D …`).
 
+## Entorno del dueño: Windows, Expo Go y Supabase en la nube
+
+- **Windows**, sin Mac. Terminal: PowerShell dentro de VS Code. Cuando le des comandos para que
+  los ejecute él: **uno por bloque**, sin `&&` (Windows PowerShell 5.1 no lo entiende), sin `cp`,
+  `rm -rf`, `export VAR=` ni rutas con `/tmp`. Los scripts del repo son TypeScript (`tsx`) para
+  que funcionen igual en Windows; no añadas scripts en bash.
+- Ve la app en su móvil con **Expo Go** (no hay simulador de iPhone en Windows). Si una tarea
+  necesita una librería nativa que Expo Go no trae, avisa: hace falta development build (nivel 2).
+- La base de datos es un **proyecto Free de Supabase en la nube**, enlazado con `npm run setup`.
+  Mientras no haya usuarios reales es su base de **desarrollo**. Antes de publicar, se crea otro
+  proyecto para producción (docs/graduacion/10-escalar-y-pagar-mas.md).
+- **Todo empieza gratis.** No propongas servicios de pago sin decir el coste y pedir OK.
+- Modo avanzado opcional: Supabase **local** con Docker (`npm run db:start`). Detecta el modo con
+  `npm run doctor` o mirando `EXPO_PUBLIC_SUPABASE_URL` en `.env` (`supabase.co` = nube).
+
 ## Comandos
 
-| Comando                                | Qué hace                                                                                     |
-| -------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `npm start`                            | Arranca Metro (servidor de desarrollo). `i` = iOS, `a` = Android, `w` = web                  |
-| `npm run check`                        | **Los 4 gates**: typecheck + lint + formato + tests. Córrelo antes de dar nada por terminado |
-| `npm run doctor`                       | Diagnostica la máquina y el `.env`                                                           |
-| `npm run db:start` / `db:stop`         | Arranca/para Supabase local (necesita Docker)                                                |
-| `npm run db:reset`                     | Borra la base LOCAL y la recrea con migraciones + `seed.sql`                                 |
-| `npm run db:new -- <nombre>`           | Crea una migración vacía en `supabase/migrations/`                                           |
-| `npm run db:types`                     | Regenera `src/types/database.ts` desde la base local. **Tras cada migración**                |
-| `npm run db:push`                      | Aplica migraciones pendientes a la base de la NUBE (proyecto enlazado)                       |
-| `npm run check:secrets`                | Busca claves secretas donde no deben estar                                                   |
-| `npm run rename -- "Nombre" com.x.app` | Renombra la plantilla (nombre, slug, bundle id, esquema)                                     |
+| Comando                                     | Qué hace                                                                                     |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `npm start`                                 | Arranca Metro. Se escanea el QR con Expo Go. `w` = abrir en el navegador                     |
+| `npm run start:tunnel`                      | Igual, pero por túnel (redes que bloquean móvil ↔ ordenador)                                 |
+| `npm run check`                             | **Los 4 gates**: typecheck + lint + formato + tests. Córrelo antes de dar nada por terminado |
+| `npm run doctor`                            | Diagnostica la máquina y el `.env`                                                           |
+| `npm run setup`                             | Asistente interactivo: `.env` + login + link + migraciones + Edge Function (lo corre él)     |
+| `npm run db:new -- <nombre>`                | Crea una migración vacía en `supabase/migrations/`                                           |
+| `npm run db:push`                           | Aplica migraciones pendientes al proyecto de la NUBE enlazado (pide confirmación)            |
+| `npm run db:types`                          | Regenera `src/types/database.ts` (de la base local si está en marcha; si no, de la nube)     |
+| `npm run check:secrets`                     | Busca claves secretas donde no deben estar                                                   |
+| `npm run check:rls`                         | Reglas de seguridad de la base (solo con base local; si no, lo hace el CI)                   |
+| `npm run rename -- "Nombre" com.x.app`      | Renombra la plantilla (nombre, slug, bundle id, esquema)                                     |
+| `npm run db:start` / `db:stop` / `db:reset` | Solo modo local (Docker): arrancar, parar, recrear desde cero con `seed.sql`                 |
 
-Supabase local usa puertos **544xx** (API `54421`, Studio `54423`, emails de prueba en Mailpit
-`54424`) para no chocar con otros proyectos Supabase de la misma máquina.
-
-Usuario de prueba del seed local: `demo@lienzo.test` / `lienzo-demo-1234`.
+Supabase local usa puertos **544xx** (API `54421`, Studio `54423`, Mailpit `54424`). Usuario de
+prueba del seed (solo base local): `demo@lienzo.test` / `lienzo-demo-1234`.
 
 ## Mapa de carpetas
 
@@ -121,7 +136,8 @@ Usa la skill **`/nueva-feature`**. A mano, copiando el patrón de notas:
 1. `npm run db:new -- tasks` → escribe la tabla siguiendo `supabase/migrations/20260926000100_notes.sql`
    (checks, índice, trigger `updated_at`, RLS, 4 policies `to authenticated` con
    `(select auth.uid())`, GRANTs, `revoke all … from anon`).
-2. `npm run db:reset` (aplica en local) → `npm run db:types`.
+2. Aplicar: modo nube `npm run db:push` (pide confirmación); modo local `npm run db:reset`.
+   Después `npm run db:types`.
 3. Esquema zod en `src/utils/validation.ts` (mismos límites que los `check` del SQL).
 4. `src/api/tasks.ts` (copia `notes.ts`) + claves en `src/api/queryKeys.ts`.
 5. `src/hooks/useTasks.ts` (copia `useNotes.ts`).
@@ -161,8 +177,9 @@ se guardan con `npx supabase secrets set NOMBRE=valor`, nunca en la app.
 
 1. **`npm run check` en verde** antes de decir que algo está hecho. Si falla, arréglalo o explica.
 2. **Nunca edites una migración ya aplicada** (en la nube o compartida): crea una nueva.
-3. **Nunca `supabase db reset` contra la nube**, ni `db push` sin que el dueño lo pida. Explica
-   primero qué va a cambiar.
+3. **Nunca `supabase db reset` contra la nube.** Antes de `npm run db:push`, explica en una frase
+   qué migración se aplicará y pide OK. Si ya existe un proyecto de **producción**, jamás se hace
+   push a él a mano: va por PR y el workflow de deploy.
 4. **Nunca metas secretos** en `src/`, `app.json`, `.env.example` ni en commits (INV-SEC-*).
 5. **No añadas dependencias sin necesidad.** Antes mira si Expo/React Native ya lo resuelve.
    Si añades una con código nativo, avisa: Expo Go deja de valer y hace falta un development

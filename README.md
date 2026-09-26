@@ -13,8 +13,9 @@ agente (`AGENTS.md`, `CLAUDE.md`), reglas verificables (`INVARIANTS.md`) y 20 sk
 
 - 📱 App iOS / Android / web con **expo-router**: login, registro, recuperar contraseña, lista de
   notas (crear, editar, borrar), perfil editable, cerrar sesión y **borrar cuenta**.
-- 🗄️ **Supabase** local con migraciones, **RLS** (cada usuario solo ve lo suyo), seed con usuario
-  demo y una **Edge Function** de ejemplo.
+- 🗄️ **Supabase** (plan gratis) con migraciones, **RLS** (cada usuario solo ve lo suyo) y una
+  **Edge Function** de ejemplo. Un asistente (`npm run setup`) lo conecta todo. Opcional: base
+  local con Docker y usuario demo.
 - 🧱 Arquitectura por capas: pantallas → hooks (React Query) → capa de datos → Supabase.
 - 🎨 Tema con modo claro/oscuro y componentes base (`Button`, `TextField`, `Screen`, `Card`…).
 - ✅ TypeScript estricto, ESLint (que hace cumplir la arquitectura), Prettier, Jest + Testing
@@ -25,33 +26,28 @@ agente (`AGENTS.md`, `CLAUDE.md`), reglas verificables (`INVARIANTS.md`) y 20 sk
 - 🎓 [Niveles de graduación](docs/graduacion/README.md): nube, builds, Sentry/PostHog, emails
   con Resend, tiendas, login social, OTA, push, pagos y escalar — con costes.
 
-## Arrancar en 5 minutos
+## Empezar (Windows, todo gratis)
 
-Necesitas Node 22, Git y Docker Desktop (para la base de datos local). Guía completa y sin
-supuestos: **[docs/00-empieza-aqui.md](docs/00-empieza-aqui.md)**.
+👉 **Abre [`SETUP.html`](SETUP.html) con doble clic**: guía visual de 10 pasos para Windows, sin
+conocimientos previos. No necesitas Mac, ni Docker, ni tarjeta.
+
+En resumen: instalar Node.js, Git, VS Code y Expo Go (en el móvil); crear un proyecto gratuito en
+[supabase.com](https://supabase.com); y en la terminal de VS Code:
 
 ```bash
 npm install
 ```
 
 ```bash
-cp .env.example .env
+npm run setup
 ```
-
-```bash
-npm run db:start
-```
-
-Copia `API_URL` y `PUBLISHABLE_KEY` que imprime el comando anterior en `.env`, y luego:
 
 ```bash
 npm start
 ```
 
-Pulsa `i` (iOS), `a` (Android) o `w` (web), o escanea el QR con **Expo Go**. Usuario de prueba:
-`demo@lienzo.test` / `lienzo-demo-1234`.
-
-¿Algo no va? `npm run doctor`.
+Escanea el QR con **Expo Go** y regístrate en la app. ¿Algo no va? `npm run doctor`.
+Versión en texto y detalles: [docs/00-empieza-aqui.md](docs/00-empieza-aqui.md).
 
 ## Hazla tuya
 
@@ -72,11 +68,11 @@ npm run rename -- "Mi App" com.minombre.miapp
 
 ## Comandos principales
 
-| Comando            | Qué hace                                                |
-| ------------------ | ------------------------------------------------------- |
-| `npm start`        | Arranca la app en modo desarrollo                       |
-| `npm run check`    | Tipos + lint + formato + tests (antes de cada PR)       |
-| `npm run doctor`   | Diagnóstico de la máquina y la configuración            |
-| `npm run db:start` | Arranca Supabase local (Studio: http://127.0.0.1:54423) |
-| `npm run db:reset` | Recrea la base local desde las migraciones + seed       |
-| `npm run db:types` | Regenera los tipos TypeScript de la base de datos       |
+| Comando            | Qué hace                                               |
+| ------------------ | ------------------------------------------------------ |
+| `npm start`        | Arranca la app en modo desarrollo                      |
+| `npm run check`    | Tipos + lint + formato + tests (antes de cada PR)      |
+| `npm run doctor`   | Diagnóstico de la máquina y la configuración           |
+| `npm run setup`    | Conecta la app con tu proyecto de Supabase (asistente) |
+| `npm run db:push`  | Aplica migraciones nuevas a tu base de datos           |
+| `npm run db:types` | Regenera los tipos TypeScript de la base de datos      |

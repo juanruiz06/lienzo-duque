@@ -12,7 +12,7 @@
 >
 > **Tiempo estimado:** 2–4 horas (la mayor parte, configurando consolas de Apple y Google).
 >
-> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md) (Supabase en la nube) y [Nivel 2](02-builds-con-eas.md)
+> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md) (GitHub y CI) y [Nivel 2](02-builds-con-eas.md)
 > (**development build**: estas librerías tienen código nativo y **no funcionan en Expo Go**).
 > Para probar en iPhone, cuenta de Apple de pago.
 
@@ -212,16 +212,22 @@ Solución en dos partes:
    $$;
    ```
 
+   Aplícala a tu proyecto de desarrollo:
+
    ```bash
-   npm run db:reset
+   npm run db:push
    ```
+
+   Te enseña la migración que va a aplicar y pide confirmación: responde `Y` (si te pide la
+   contraseña, es la _Database password_ de tu proyecto). Si usas base local (Docker):
+   `npm run db:reset`.
 
    ```bash
    npm run db:types
    ```
 
    (No añade tablas, así que `db:types` no debería cambiar nada; córrelo igualmente, es la regla.)
-   Al hacer merge en `main`, el workflow `deploy-supabase.yml` la aplicará en la nube.
+   Al hacer merge en `main`, el workflow `deploy-supabase.yml` se asegura de que esté aplicada.
 
 2. **Apple**: justo después de entrar, guardamos el nombre en los metadatos (`full_name`) y en el
    perfil **solo si está vacío** (para no pisar un nombre que el usuario haya cambiado). Lo hace
@@ -575,9 +581,9 @@ Has añadido código nativo, así que el build anterior no sirve:
 eas build --profile development --platform all
 ```
 
-Instálalo, arranca con `npm start` y prueba ambos botones. Mientras pruebas login social, apunta
-tu `.env` al **proyecto de la nube** (la configuración de proveedores sociales en el Supabase
-local es más delicada y no merece la pena al principio).
+Instálalo, arranca con `npm start` y prueba ambos botones. Tu `.env` ya apunta a tu proyecto de
+la nube, que es donde configuraste los proveedores. (Si usas base local con Docker, vuelve a la
+nube para esto: configurar proveedores sociales en local es más delicado y no merece la pena.)
 
 ## ⚠️ Nota importante: borrar la cuenta y los tokens de Apple
 

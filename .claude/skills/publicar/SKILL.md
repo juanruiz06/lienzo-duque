@@ -15,7 +15,7 @@ Cada build y envío es una acción externa: **pide confirmación** antes de lanz
 ## 1. Checklist previo (no lances nada si algo falla)
 
 - [ ] En `main`, actualizado, con el CI en verde (`gh pr checks` / GitHub Actions).
-- [ ] `npm run check`, `npm run check:secrets` y (si hay local) `npm run check:rls` en verde.
+- [ ] `npm run check` y `npm run check:secrets` en verde, y el CI del último PR en verde (incluye `check:rls`).
 - [ ] Migraciones de este release ya aplicadas en la nube **antes** del build (la app nueva las necesita).
 - [ ] Edge Functions nuevas/cambiadas desplegadas.
 - [ ] Probado en un móvil real con un build `preview` (no solo en Expo Go/simulador).

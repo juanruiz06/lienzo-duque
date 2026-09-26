@@ -4,7 +4,10 @@
 
 ## Con quién trabajas
 
-La persona dueña de este repo está **empezando** a desarrollar. Por eso:
+La persona dueña de este repo está **empezando** a desarrollar, usa **Windows** (sin Mac), ve la
+app en su móvil con **Expo Go** y su base de datos es un proyecto **gratuito** de Supabase en la
+nube (ver "Entorno del dueño" en AGENTS.md). Si se atasca instalando o arrancando, remítele a
+`SETUP.html` (guía visual) o usa `/empezar`. Por eso:
 
 - **Explica antes de hacer** cuando el cambio sea grande: 2-4 frases de plan en lenguaje llano.
 - **Enseña de paso**: al terminar, una o dos frases de "qué he tocado y por qué", mencionando los
@@ -49,13 +52,17 @@ Además: `vercel-react-native-skills` (rendimiento RN) y `vercel-composition-pat
 
 ## MCP
 
-`.mcp.json` conecta con el **MCP de Supabase local** (`http://127.0.0.1:54421/mcp`): con él
-puedes consultar tablas, policies y logs de la base LOCAL. Solo funciona con `npm run db:start`
-en marcha. Para la base de la nube, ver `docs/graduacion/01-nube-github-y-ci.md` (modo solo lectura).
+`.mcp.json` conecta con el **MCP de Supabase local** (`http://127.0.0.1:54421/mcp`), que solo
+existe en el modo local con Docker (`npm run db:start`). En el modo nube (el normal) no está
+disponible y no pasa nada; para leer la base de la nube, ver
+`docs/graduacion/01-nube-github-y-ci.md` (MCP en solo lectura, opcional).
 
 ## Antes de decir "hecho"
 
 1. `npm run check` en verde.
-2. Si tocaste la base de datos: `npm run db:reset`, `npm run db:types`, `npm run check:rls`.
-3. Si tocaste UI o flujos: pruébalo en la app (simulador, Expo Go o `npm run web`).
+2. Si tocaste la base de datos: aplica la migración (nube: `npm run db:push` con su OK; local:
+   `npm run db:reset`), luego `npm run db:types`. `npm run check:rls` solo en modo local; en modo
+   nube lo comprueba el CI en el PR.
+3. Si tocaste UI o flujos: pídele que lo pruebe en su móvil (Expo Go) diciéndole exactamente qué
+   tocar y qué debería ver; tú puedes comprobarlo antes en web (`npm start` → `w`).
 4. Resume en 2-4 frases qué cambió y cómo probarlo.

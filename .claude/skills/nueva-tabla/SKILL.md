@@ -58,20 +58,17 @@ Referencia obligatoria: `supabase/migrations/20260926000100_notes.sql` (tabla nu
    - Columna nueva en tabla con datos: `not null` solo con `default`, o en dos pasos.
    - Renombrar/borrar columnas rompe apps ya instaladas que las usan → avisa y propone hacerlo en dos fases (añadir nueva, migrar, borrar vieja más tarde).
 
-3. **Aplica en local** (recrea la base local desde cero; los datos locales se pierden, el seed vuelve):
-   ```bash
-   npm run db:reset
-   ```
-4. **Tipos y seguridad**:
-   ```bash
-   npm run db:types
-   npm run check:rls
-   ```
-5. **Prueba el RLS de verdad** si hay datos por usuario: con dos usuarios en la app, o con el MCP
-   `supabase-local`/Studio (http://127.0.0.1:54423). El usuario B no debe ver ni tocar filas de A.
+3. **Aplica la migración.** Mira el modo en `.env` (`supabase.co` = nube) o con `npm run doctor`:
+   - **Nube (lo normal)**: es su proyecto de desarrollo. Revisa el SQL una última vez, explícale
+     en una frase qué cambia y, con su OK: `npm run db:push`. Si el push falla por un error de SQL,
+     NO se ha aplicado nada: corrige el archivo (aún no está aplicado, se puede editar) y repite.
+   - **Local (Docker)**: `npm run db:reset` (recrea la base local; el seed vuelve).
+4. **Tipos**: `npm run db:types`. En modo local, además `npm run check:rls`. En modo nube, las
+   reglas las comprueba el CI (`check:rls`) al abrir el PR; revísalas tú contra INV-DB-1/2/3/5.
+5. **Prueba el RLS de verdad** si hay datos por usuario: con dos cuentas en la app (el usuario B no
+   debe ver ni tocar filas de A). En la nube, también en el SQL Editor de Supabase.
 6. **Seed** (opcional): añade datos de ejemplo a `supabase/seed.sql` para el usuario demo.
-7. **A la nube**: NO hagas `db push` salvo que lo pidan. Explica que al mergear en `main` el
-   workflow `deploy-supabase.yml` la aplicará (si está configurado) o que puede hacerlo con
-   `npm run db:push` tras revisarla.
+7. **Producción**: si ya existe un proyecto de producción (nivel 10), la migración llega a él
+   solo por PR + workflow `deploy-supabase.yml`, nunca con un push a mano.
 
 Explica al final, en castellano llano, qué reglas de acceso tiene la tabla ("solo tú ves tus tareas").

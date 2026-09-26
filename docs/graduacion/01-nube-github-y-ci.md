@@ -1,25 +1,27 @@
-# Nivel 1 — Supabase en la nube, GitHub y CI
+# Nivel 1 — GitHub y CI
 
-> **Qué consigues:** tu base de datos y tu login viven en internet (la app funciona en cualquier
-> móvil, con cualquier wifi o con datos), tu código está a salvo en GitHub y cada cambio pasa
-> por comprobaciones automáticas antes de entrar en `main`.
+> **Qué consigues:** tu código está a salvo en GitHub, cada cambio pasa por comprobaciones
+> automáticas antes de entrar en `main` y lo que toques en `supabase/` se despliega solo al
+> mergear. Tu base de datos en la nube ya la tienes desde el nivel 0.
 >
-> **Cuánto cuesta:** 0 €. Supabase Free + GitHub Free. (Opcional: GitHub Pro ~4 $/mes si quieres
-> que las reglas de rama se apliquen en un repo privado; ver paso 12.)
+> **Cuánto cuesta:** 0 €. GitHub Free (Supabase Free ya lo tienes). (Opcional: GitHub Pro ~4 $/mes
+> si quieres que las reglas de rama se apliquen en un repo privado; ver paso 7.)
 >
-> **Cuándo hacerlo:** cuando quieras enseñar la app a otra persona, probarla en tu móvil fuera
-> de casa o, simplemente, tener tu trabajo guardado fuera de tu ordenador.
+> **Cuándo hacerlo:** cuanto antes. En cuanto tengas algo en tu ordenador que te daría pena
+> perder, o quieras que un robot revise tus cambios antes de que lleguen a `main`.
 >
-> **Tiempo estimado:** 45–75 minutos la primera vez.
+> **Tiempo estimado:** 30–45 minutos la primera vez.
 >
-> **Requisitos:** Nivel 0 funcionando (`npm run doctor` sin ❌ y la app arrancando en local).
+> **Requisitos:** Nivel 0 funcionando: `npm run setup` terminado, `npm run doctor` sin ❌ y la app
+> abriendo en tu móvil con Expo Go.
 
 ## Conceptos en una frase
 
-- **Proyecto de Supabase en la nube:** lo mismo que tienes en local (Postgres + Auth + Edge
-  Functions), pero en un servidor de Supabase accesible desde internet.
+- **Tu proyecto de Supabase:** el que creaste en supabase.com y conectaste con `npm run setup`
+  (Postgres + Auth + Edge Functions en un servidor de Supabase). Mientras no tengas usuarios
+  reales, es tu base de **desarrollo**.
 - **Migraciones:** los archivos de `supabase/migrations/` que describen tus tablas. "Empujarlas"
-  (`db push`) crea esas tablas en la nube, igual que se crearon en local.
+  (`npm run db:push`) crea esas tablas en tu proyecto; `npm run setup` ya lo hizo la primera vez.
 - **Edge Function:** un trozo de código que corre en el servidor de Supabase. Lienzo trae una,
   `delete-account`, que borra la cuenta del usuario (lo exigen Apple y Google).
 - **GitHub:** el sitio donde guardas tu código con todo su historial.
@@ -30,17 +32,23 @@
 
 ---
 
-## Parte A — Supabase en la nube
+## Parte A — Tu Supabase en la nube (repaso)
+
+> ✅ **Ya lo hiciste con `npm run setup`** ([SETUP.html](../../SETUP.html)): creaste el proyecto
+> Free, el asistente guardó la URL y la clave pública en `.env`, inició sesión en la CLI, enlazó
+> la carpeta (`supabase link`), creó las tablas (`db push`) y subió `delete-account`. Aquí solo
+> compruebas que todo está en su sitio y terminas dos ajustes que el asistente no hace.
 
 ### Qué implica el plan Free (sept. 2026, compruébalo)
 
-Antes de crear nada, conviene saber dónde están los límites del plan gratuito
+Conviene saber dónde están los límites del plan gratuito
 ([precios](https://supabase.com/pricing)):
 
 - **Se pausa tras 1 semana sin actividad.** Si nadie usa la app en 7 días, el proyecto se
   "duerme". Se despierta desde el dashboard (botón _Restore_), pero mientras tanto la app no
   funciona. Para una app con usuarios reales, esto es motivo para pasar a Pro (nivel 10).
-- **Máximo 2 proyectos activos** por cuenta.
+- **Máximo 2 proyectos activos** por cuenta (justo los que necesitarás: desarrollo y, al
+  publicar, producción).
 - **500 MB de base de datos, 1 GB de archivos, 5 GB de transferencia, 50.000 usuarios activos al
   mes, 500.000 llamadas a Edge Functions.** Para empezar, sobra.
 - **Sin backups descargables.** Si borras datos por error, no hay copia que restaurar. En Pro hay
@@ -48,102 +56,33 @@ Antes de crear nada, conviene saber dónde están los límites del plan gratuito
 - **El email de Supabase es solo para pruebas.** Solo envía a miembros de tu equipo en Supabase
   y como mucho 2 emails por hora. Por eso existe el [nivel 4](04-emails-con-resend.md).
 
-### 1. Crea el proyecto
+### 1. Comprueba lo que hizo `npm run setup`
 
-1. Entra en [supabase.com](https://supabase.com) y regístrate (vale con tu cuenta de GitHub).
-2. Pulsa **New project**.
-3. Rellena:
-   - **Name:** el nombre de tu app.
-   - **Database password:** pulsa _Generate a password_ y **guárdala en tu gestor de contraseñas**
-     (1Password, Bitwarden, el llavero del Mac…). La necesitarás en los pasos 3, 4 y 11 y
-     Supabase no te la vuelve a enseñar.
-   - **Region:** una de la UE, por ejemplo **Central EU (Frankfurt)** o **West EU (Ireland)**. Así
-     los datos de tus usuarios se quedan en Europa (útil para el RGPD) y la app va más rápida
-     desde España.
-   - **Plan:** Free.
-4. Pulsa **Create new project** y espera un par de minutos.
+En el dashboard de Supabase ([supabase.com/dashboard](https://supabase.com/dashboard)), entra en
+tu proyecto y mira:
 
-Apunta el **Project ref**: es el código de ~20 letras que aparece en la URL del dashboard
-(`https://supabase.com/dashboard/project/ESTE_CODIGO`). No es secreto, pero tampoco hace falta
-publicarlo.
+- **Table Editor:** aparecen `profiles` y `notes`.
+- **Edge Functions:** aparece `delete-account`. Si no está (el asistente lo avisa en amarillo),
+  súbela:
 
-### 2. Inicia sesión con la CLI
+  ```bash
+  npx supabase functions deploy delete-account --use-api
+  ```
 
-La CLI de Supabase ya viene instalada en el proyecto (está en `package.json`). Ábrela así:
+Y apunta dos datos que vas a necesitar en el paso 6:
 
-```bash
-npx supabase login
-```
+- El **Project ref**: el código de ~20 letras de tu URL de Supabase (en `.env`,
+  `EXPO_PUBLIC_SUPABASE_URL=https://ESTE_CODIGO.supabase.co`). No es secreto, pero tampoco hace
+  falta publicarlo.
+- La **Database password** que guardaste en tu gestor de contraseñas al crear el proyecto. ¿No la
+  tienes? **Project Settings → Database → Reset database password** (guarda la nueva).
 
-Se abrirá el navegador para autorizar. Cuando termine, la terminal dirá que has iniciado sesión.
+> 🚫 En **Project Settings → API Keys** verás también la **secret key** (`sb_secret_…`) y, en la
+> pestaña de claves antiguas, la **service_role**. **Nunca** las pongas en `.env`, en la app ni en
+> el chat: dan acceso total a tu base de datos saltándose la seguridad (RLS). El CI
+> (`npm run check:secrets`) te avisará si se cuelan en `src/`.
 
-### 3. Enlaza tu carpeta con el proyecto de la nube
-
-Sustituye `TU_PROJECT_REF` por el código del paso 1:
-
-```bash
-npx supabase link --project-ref TU_PROJECT_REF
-```
-
-Te pedirá la contraseña de la base de datos (la del gestor). A partir de ahora, los comandos
-"remotos" de la CLI apuntan a ese proyecto.
-
-### 4. Crea las tablas en la nube
-
-```bash
-npm run db:push
-```
-
-Te enseñará la lista de migraciones que va a aplicar (`..._base.sql`, `..._notes.sql` y las que
-hayas creado tú) y te pedirá confirmación. Responde `Y`.
-
-> ⚠️ `db:push` **no** ejecuta `supabase/seed.sql`: los datos de ejemplo se quedan en local. En la
-> nube empiezas con las tablas vacías, que es lo correcto.
-
-### 5. Despliega la Edge Function
-
-```bash
-npx supabase functions deploy delete-account
-```
-
-La configuración (`verify_jwt = true`, es decir, "solo usuarios con sesión") se toma de
-`supabase/config.toml`. En el dashboard, en **Edge Functions**, verás `delete-account` como
-desplegada.
-
-### 6. Apunta la app a la nube
-
-En el dashboard: **Project Settings → API Keys**. Necesitas dos valores:
-
-- **Project URL** (tiene la forma `https://TU_PROJECT_REF.supabase.co`).
-- **Publishable key** (empieza por `sb_publishable_`). Es **pública**: puede ir en la app.
-
-> 🚫 En esa misma pantalla verás la **secret key** (`sb_secret_…`) y, en la pestaña de claves
-> antiguas, la **service_role**. **Nunca** las pongas en `.env`, en la app ni en el chat: dan
-> acceso total a tu base de datos saltándose la seguridad (RLS). El CI (`npm run check:secrets`)
-> te avisará si se cuelan en `src/`.
-
-Abre tu `.env` y deja las dos versiones, comentando la que no uses:
-
-```dotenv
-# Local (Nivel 0)
-# EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54421
-# EXPO_PUBLIC_SUPABASE_KEY=sb_publishable_...local...
-
-# Nube (Nivel 1)
-EXPO_PUBLIC_SUPABASE_URL=https://TU_PROJECT_REF.supabase.co
-EXPO_PUBLIC_SUPABASE_KEY=sb_publishable_...
-```
-
-Reinicia Expo para que lea el `.env` nuevo (las variables se leen al arrancar):
-
-```bash
-npx expo start --clear
-```
-
-> Consejo: sigue desarrollando contra **local** (es más rápido, gratis y puedes romper cosas) y
-> usa la nube para enseñar la app. Cambiar es comentar/descomentar esas líneas y reiniciar.
-
-### 7. Configura Auth en el dashboard
+### 2. Configura Auth en el dashboard
 
 Ve a **Authentication → URL Configuration**:
 
@@ -154,25 +93,25 @@ Ve a **Authentication → URL Configuration**:
   - `exp://**` → para cuando pruebas con Expo Go.
   - `http://localhost:8081/**` → para la versión web en desarrollo.
 
-Son las mismas que tienes en local en `supabase/config.toml` (`site_url` y
+Son las mismas que usa la base local opcional en `supabase/config.toml` (`site_url` y
 `additional_redirect_urls`); en la nube hay que ponerlas a mano.
 
-Luego ve a **Authentication → Sign In / Providers → Email** y mira **Confirm email**:
+Luego mira **Authentication → Sign In / Providers → Email → Confirm email**:
 
-- En la nube viene **activado**: al registrarse, el usuario recibe un email y no puede entrar
-  hasta que pulse el enlace. Es lo que quieres en producción.
-- **Pero** con el email por defecto de Supabase solo te llegará a **ti** (si tu email es miembro
-  del equipo del proyecto) y como mucho 2 por hora.
-- **Qué hacer:** si solo pruebas tú, déjalo activado. Si vas a dejar que se registren amigos antes
-  del nivel 4, puedes **desactivarlo temporalmente** (entrarán sin confirmar). Apúntate
-  reactivarlo en cuanto hagas el [nivel 4](04-emails-con-resend.md), y **nunca** publiques en
-  tiendas con él desactivado.
+- `npm run setup` te pidió **desactivarlo** para que puedas registrarte con emails de prueba sin
+  esperar ningún correo. Para desarrollar, así está bien.
+- Con el email por defecto de Supabase solo te llegarían los correos a **ti** (si tu email es
+  miembro del equipo del proyecto) y como mucho 2 por hora, así que no merece la pena activarlo
+  todavía.
+- **Reactívalo** en cuanto hagas el [nivel 4](04-emails-con-resend.md), y **nunca** publiques en
+  tiendas con él desactivado (tu proyecto de producción, que crearás al publicar, lo trae activado
+  de serie).
 
 ---
 
 ## Parte B — GitHub y CI
 
-### 8. Crea el repositorio
+### 3. Crea el repositorio
 
 1. Regístrate en [github.com](https://github.com) si no tienes cuenta.
 2. Arriba a la derecha, **+ → New repository**.
@@ -180,7 +119,7 @@ Luego ve a **Authentication → Sign In / Providers → Email** y mira **Confirm
    ".gitignore" (ya los tienes).
 4. Pulsa **Create repository** y copia la URL que termina en `.git`.
 
-### 9. Sube tu código
+### 4. Sube tu código
 
 Primero comprueba que tu `.env` **no** se va a subir (debe salir listado como ignorado):
 
@@ -204,11 +143,12 @@ git branch -M main
 git push -u origin main
 ```
 
-Si nunca has hecho un commit, antes haz `git add -A` y `git commit -m "Primer commit"` (o pídeselo
-a Claude). Si tienes instalada la CLI de GitHub (`gh`), todo esto se resume en
+Si tu carpeta aún no es un repositorio (`git status` dice _not a git repository_), empieza por
+`git init`. Si nunca has hecho un commit, antes de subir haz `git add -A` y
+`git commit -m "Primer commit"` (o pídeselo a Claude). Si tienes instalada la CLI de GitHub (`gh`), todo esto se resume en
 `gh repo create --private --source . --push`.
 
-### 10. Mira el CI en acción
+### 5. Mira el CI en acción
 
 En GitHub, pestaña **Actions**. Verás el workflow **CI** ejecutándose con dos trabajos:
 
@@ -218,10 +158,12 @@ En GitHub, pestaña **Actions**. Verás el workflow **CI** ejecutándose con dos
 Tarda unos 3 minutos. En repos privados tienes **2.000 minutos gratis al mes** (sept. 2026,
 compruébalo), así que da para cientos de ejecuciones.
 
-### 11. Activa el despliegue automático de Supabase
+### 6. Activa el despliegue automático de Supabase
 
-El workflow `deploy-supabase.yml` aplica tus migraciones y despliega tus Edge Functions en la
-nube **cada vez que mergeas en `main` algo que toque `supabase/`**. Hasta que le des las claves,
+El workflow `deploy-supabase.yml` aplica tus migraciones y despliega tus Edge Functions en tu
+proyecto de Supabase **cada vez que mergeas en `main` algo que toque `supabase/`**. De momento
+lo apuntas a tu proyecto de **desarrollo**; cuando crees el de producción
+([nivel 10](10-escalar-y-pagar-mas.md)), cambiarás estos secrets para que apunten allí. Hasta que le des las claves,
 termina en verde sin hacer nada.
 
 En GitHub: **Settings → Secrets and variables → Actions → New repository secret**. Crea estos
@@ -230,18 +172,21 @@ tres (todos son **secretos**):
 | Nombre                  | De dónde sale                                                                                                                                         |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SUPABASE_ACCESS_TOKEN` | [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) → _Generate new token_. Ponle un nombre como "GitHub Actions". |
-| `SUPABASE_PROJECT_REF`  | El Project ref del paso 1.                                                                                                                            |
+| `SUPABASE_PROJECT_REF`  | El Project ref del paso 1 (el de tu proyecto de desarrollo).                                                                                          |
 | `SUPABASE_DB_PASSWORD`  | La contraseña de la base de datos (la del gestor).                                                                                                    |
 
 Para probarlo sin esperar a un cambio: **Actions → Deploy Supabase → Run workflow**. Si los
 secrets están bien, verás los pasos "Enlazar proyecto", "Aplicar migraciones" y "Desplegar Edge
 Functions" en verde (en vez del aviso "Faltan secrets").
 
-> Desde ahora, la forma "oficial" de cambiar la base de la nube es: migración nueva → PR → merge.
-> Evita tocar tablas a mano en el dashboard: esos cambios no quedan en `supabase/migrations/` y
-> tu local y la nube dejan de parecerse.
+> Desde ahora, cualquier cambio de tablas va en una **migración**: la aplicas a tu proyecto de
+> desarrollo con `npm run db:push`, la pruebas en el móvil, abres un PR y, al mergear, el workflow
+> se asegura de que está aplicada (en desarrollo no encontrará nada nuevo; en producción, más
+> adelante, será la única vía). Evita tocar tablas a mano en el dashboard: esos cambios no quedan
+> en `supabase/migrations/` y el CI (que crea la base desde cero con tus migraciones) deja de
+> parecerse a tu proyecto.
 
-### 12. Protege la rama `main`
+### 7. Protege la rama `main`
 
 La idea: que nada entre en `main` si el CI está en rojo.
 
@@ -251,7 +196,7 @@ La idea: que nada entre en `main` si el CI está en rojo.
    solo).
 4. Activa **Require status checks to pass** y añade los dos checks del CI: _Calidad (tipos,
    lint, formato, tests, secretos)_ y _Base de datos (migraciones + tipos al día)_. Solo aparecen
-   en el buscador si el CI se ha ejecutado al menos una vez (paso 10).
+   en el buscador si el CI se ha ejecutado al menos una vez (paso 5).
 5. Guarda.
 
 > ⚠️ **Límite del plan gratis de GitHub (sept. 2026, compruébalo):** en repos **privados** de
@@ -261,20 +206,21 @@ La idea: que nada entre en `main` si el CI está en rojo.
 > respetar el flujo por disciplina. Para alguien que trabaja solo, la tercera es razonable al
 > principio: el CI sigue avisando en rojo aunque no bloquee.
 
-### 13. El flujo de trabajo desde ahora
+### 8. El flujo de trabajo desde ahora
 
 1. Crea una rama para cada cambio: `git switch -c feature/nombre-corto`.
-2. Haz commits en esa rama.
+2. Haz commits en esa rama. Si el cambio trae una migración nueva, aplícala a tu proyecto de
+   desarrollo con `npm run db:push` y pruébala en el móvil antes de seguir.
 3. Súbela: `git push -u origin feature/nombre-corto`.
 4. En GitHub aparecerá un botón **Compare & pull request**. Ábrelo (la plantilla
    `.github/pull_request_template.md` te guía).
 5. Espera al CI. Si sale rojo, entra en el detalle, arréglalo en la misma rama y vuelve a
    subir.
-6. En verde → **Merge**. Si tocaste `supabase/`, el despliegue a la nube se lanza solo.
+6. En verde → **Merge**. Si tocaste `supabase/`, el despliegue a Supabase se lanza solo.
 
 Claude Code puede hacer casi todo esto por ti ("crea una rama, haz commit y abre un PR").
 
-### 14. (Opcional) Que Claude vea tu Supabase de la nube
+### 9. (Opcional) Que Claude vea tu Supabase de la nube
 
 El **MCP de Supabase** permite a Claude Code consultar tu proyecto (tablas, logs, advisors de
 seguridad) directamente. Recomendación: **solo lectura y limitado a un proyecto**.
@@ -298,8 +244,8 @@ aprobación manual de cada llamada. Más info: [Supabase MCP](https://supabase.c
 
 - [ ] En el dashboard de Supabase, **Table Editor** muestra `profiles` y `notes`.
 - [ ] En **Edge Functions** aparece `delete-account`.
-- [ ] Con el `.env` apuntando a la nube, te registras en la app y el usuario aparece en
-      **Authentication → Users** (si "Confirm email" está activo, confirma desde tu email).
+- [ ] En **Authentication → URL Configuration** están la Site URL y las tres Redirect URLs.
+- [ ] Te registras en la app y el usuario aparece en **Authentication → Users**.
 - [ ] Creas una nota y la ves en **Table Editor → notes**.
 - [ ] La app funciona en tu móvil con Expo Go **usando datos móviles** (sin tu wifi).
 - [ ] **Perfil → Borrar cuenta** borra el usuario de **Authentication → Users**.
@@ -309,22 +255,22 @@ aprobación manual de cada llamada. Más info: [Supabase MCP](https://supabase.c
 
 ## 🧯 Problemas típicos
 
-- **"Configuración inválida" al abrir la app:** falta algo en `.env` o no reiniciaste Expo. Revisa
-  que la URL empiece por `https://` y reinicia con `npx expo start --clear`.
+- **"Configuración inválida" al abrir la app:** falta algo en `.env` o no reiniciaste Expo.
+  Vuelve a ejecutar `npm run setup` y reinicia con `npx expo start --clear`.
 - **Me registro y "no pasa nada":** "Confirm email" está activo y el email no te llega (límite de 2
   por hora o tu email no es miembro del equipo). Mira **Authentication → Users**: el usuario estará
-  "Waiting for verification". Opciones en el paso 7.
-- **El enlace del email abre una web que no carga:** falta la Site URL o las Redirect URLs del paso 7.
+  "Waiting for verification". Opciones en el paso 2.
+- **El enlace del email abre una web que no carga:** falta la Site URL o las Redirect URLs del paso 2.
 - **`db push` falla con "password authentication failed":** contraseña de BD incorrecta. Puedes
   cambiarla en **Project Settings → Database → Reset database password** (y actualiza el secret
   `SUPABASE_DB_PASSWORD`).
-- **`db push` dice que el remoto tiene migraciones que no tienes en local:** alguien (o tú)
+- **`db push` dice que el remoto tiene migraciones que no tienes en tu carpeta:** alguien (o tú)
   cambió la base desde el dashboard. Pídele a Claude que te ayude con
   `npx supabase migration list` antes de tocar nada.
 - **La app va lenta o da error tras unos días sin usarla:** el proyecto se ha pausado. Dashboard →
   **Restore project**.
-- **Borrar cuenta falla en la nube:** no desplegaste la función (paso 5) o la desplegaste antes del
-  `link`. Repite el paso 5.
+- **Borrar cuenta falla:** `npm run setup` no pudo subir la función (lo avisa en amarillo).
+  Súbela con el comando del paso 1 o vuelve a ejecutar `npm run setup`.
 - **El PR se queda "esperando" un check que nunca llega:** el nombre del check obligatorio no
   coincide con el del job (p. ej. se renombró en `ci.yml`). En Settings → Branches, quita el check
   viejo y añade los actuales ("Calidad…" y "Base de datos…").
@@ -341,10 +287,10 @@ aprobación manual de cada llamada. Más info: [Supabase MCP](https://supabase.c
 
 O pega algo así:
 
-> Quiero pasar al nivel 1: ya he creado el proyecto de Supabase en Frankfurt y tengo el project
-> ref y la contraseña en mi gestor. Guíame para enlazarlo, subir las migraciones, desplegar
-> delete-account y apuntar mi .env a la nube. No me pidas que te pegue claves secretas: dime
-> dónde ponerlas yo.
+> Quiero pasar al nivel 1: ya tengo mi Supabase conectado con npm run setup. Comprueba que las
+> tablas y delete-account están en la nube, dime qué tengo que poner en URL Configuration y
+> guíame para subir el código a GitHub. No me pidas que te pegue claves secretas: dime dónde
+> ponerlas yo.
 
 > Tengo el repo creado en GitHub y vacío. Sube mi código, comprueba que el .env no se sube y
 > dime exactamente qué secrets tengo que crear para deploy-supabase.yml.

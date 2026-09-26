@@ -13,7 +13,7 @@ Objetivo: $ARGUMENTS
 1. **Lógica pura** (`src/utils`): validación, fechas, cálculos, transformaciones. Rápido y muy rentable.
 2. **Capa de datos** (`src/api`) con Supabase **simulado**: que llama a la tabla correcta, valida antes de enviar, no manda `user_id`, propaga errores. Modelo: `src/api/__tests__/notes.test.ts` (`mockQuery`).
 3. **Componentes** con comportamiento (`src/components`): se pulsan, se deshabilitan, muestran estados. Modelo: `src/components/ui/__tests__/Button.test.tsx`.
-4. Las **reglas RLS** no se prueban con Jest: con la base local (`npm run check:rls` + prueba manual con dos usuarios, o `/revisar-seguridad`).
+4. Las **reglas RLS** no se prueban con Jest: prueba manual con dos usuarios en la app, `/revisar-seguridad`, y el CI (`check:rls` en el PR).
 
 ## Convenciones
 

@@ -1,7 +1,7 @@
 # Nivel 10 — Escalar y pagar más (cuando toca)
 
-> **Qué consigues:** saber **cuándo** merece la pena pagar cada servicio y **por qué**; separar un
-> entorno de pruebas (_staging_) del de producción; tener copias de seguridad de verdad; y que la
+> **Qué consigues:** saber **cuándo** merece la pena pagar cada servicio y **por qué**; separar tu
+> proyecto de desarrollo del de producción; tener copias de seguridad de verdad; y que la
 > base de datos siga rápida con muchos usuarios.
 >
 > **Cuánto cuesta:** desde ~25 $/mes (Supabase Pro) hasta ~150–250 $/mes con todo en plan de pago.
@@ -10,11 +10,12 @@
 > **Cuándo hacerlo:** **no antes de tener un motivo**. Las señales están en cada sección. La más
 > habitual: tienes usuarios reales y perder sus datos sería un desastre → Supabase Pro.
 >
-> **Tiempo estimado:** Supabase Pro, 10 minutos. Entornos staging/producción, medio día.
+> **Tiempo estimado:** Supabase Pro, 10 minutos. Proyecto de producción, medio día.
 > Revisión de rendimiento, 1–2 horas cada cierto tiempo.
 >
-> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md) y, para que tenga sentido, app publicada
-> ([nivel 5](05-publicar-en-tiendas.md)).
+> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md). La sección 2 (proyecto de producción) se
+> hace justo **antes** de publicar ([nivel 5](05-publicar-en-tiendas.md)); el resto, con la app
+> ya publicada.
 
 ## La regla de oro
 
@@ -59,7 +60,10 @@ Cómo: Dashboard → Organization → **Billing** → Change plan → Pro. No ha
 cortes.
 
 Y aunque tengas backups de Supabase, guarda de vez en cuando **tu propia copia** (por si pierdes
-el acceso a la cuenta). Con el proyecto enlazado (`supabase link`, nivel 1):
+el acceso a la cuenta). Estos comandos copian el proyecto **enlazado** a tu carpeta, que es el de
+desarrollo. Para copiar producción, enlázala un momento con
+`npx supabase link --project-ref REF_DE_PRODUCCION` y, al terminar, vuelve a enlazar desarrollo
+(`npm run setup` lo hace):
 
 ```bash
 npx supabase db dump --linked -f copia-esquema.sql
@@ -71,63 +75,67 @@ npx supabase db dump --linked --data-only -f copia-datos.sql
 
 Guárdalas **fuera del repo** (contienen datos personales de tus usuarios) y cifradas si puedes.
 
-## 2. Entornos separados: staging y producción
+## 2. Entornos separados: desarrollo y producción
 
-**Señales:** ya tienes usuarios reales y te da miedo probar una migración o un cambio "a ver qué
-pasa"; o quieres que tus testers usen la app sin mezclar sus datos con los de producción.
+**Cuándo:** **antes de publicar** en las tiendas ([nivel 5](05-publicar-en-tiendas.md)) o de dejar
+entrar a usuarios reales. Hasta ahora, tu proyecto Free de `npm run setup` ha sido tu base de
+**desarrollo**, llena de usuarios de prueba y datos a medias. Los usuarios reales merecen un
+proyecto limpio al que solo lleguen cambios revisados.
 
-Qué es **staging**: una copia del sistema, con su propia base de datos, donde pruebas antes de
-tocar producción. Los usuarios reales nunca lo ven.
+Qué es cada entorno: **desarrollo** es donde pruebas tú (y tus testers, con builds `preview`);
+**producción** es el que usan los usuarios de las tiendas, que nunca ven desarrollo. (Algunos
+equipos añaden un tercero, _staging_, una copia de producción para ensayar; para una persona sola,
+desarrollo hace ese papel.)
 
 ### El plan
 
-| Entorno        | Base de datos                           | Build EAS / canal     | Quién lo usa            |
-| -------------- | --------------------------------------- | --------------------- | ----------------------- |
-| **Local**      | Supabase en Docker (`npm run db:start`) | Metro / `development` | Tú programando          |
-| **Staging**    | Proyecto Supabase `miapp-staging`       | `preview`             | Tú y tus testers        |
-| **Producción** | Proyecto Supabase `miapp-prod`          | `production`          | Usuarios de las tiendas |
+| Entorno          | Base de datos                                   | Build EAS / canal                  | Quién lo usa                    |
+| ---------------- | ----------------------------------------------- | ---------------------------------- | ------------------------------- |
+| **Desarrollo**   | Tu proyecto Free de `npm run setup`             | Expo Go / `development`, `preview` | Tú y tus testers                |
+| **Producción**   | Proyecto nuevo `miapp-prod`, creado al publicar | `production`                       | Usuarios de las tiendas         |
+| Local (opcional) | Supabase en Docker (`npm run db:start`)         | Metro / `development`              | Tú, si quieres trabajar offline |
 
 ### Pasos
 
-1. **Crea un segundo proyecto** en Supabase (misma región). Si tu organización es Pro, el segundo
-   proyecto suma ~10 $/mes de computación Micro. Alternativa barata: pon staging en una
-   organización gratuita aparte (se pausará si no lo usas, pero para staging da igual).
-2. **Configúralo igual que producción**: Auth (Redirect URLs, SMTP de Resend del
-   [nivel 4](04-emails-con-resend.md), proveedores sociales), secrets de Edge Functions
-   (`npx supabase secrets set … --project-ref REF_DE_STAGING`) y, si usas push, los secretos de
-   Vault ([nivel 8](08-notificaciones-push.md)).
-3. **EAS environments**: cada entorno de EAS apunta a un proyecto distinto. Cambia `preview` para
-   que use staging (repite con `EXPO_PUBLIC_SUPABASE_KEY`):
+1. **Crea el proyecto de producción** en Supabase (misma región; guarda su _Database password_ en
+   tu gestor). En el plan gratis caben 2 proyectos activos, justo desarrollo y producción. Pero
+   con usuarios reales, producción debería estar en **Pro** (sección 1), y Pro se paga por
+   organización y suma ~10 $/mes de computación Micro por cada proyecto que tenga. Lo barato:
+   crea producción en una organización nueva que pases a Pro y deja desarrollo en tu organización
+   gratuita (si se pausa, da igual).
+2. **Crea las tablas y funciones en producción desde GitHub**, no desde tu ordenador. En GitHub →
+   Settings → Secrets and variables → Actions, cambia `SUPABASE_PROJECT_REF` y
+   `SUPABASE_DB_PASSWORD` por los de producción y lanza **Actions → Deploy Supabase → Run
+   workflow**: aplica todas las migraciones y despliega las Edge Functions. Tu carpeta sigue
+   enlazada a desarrollo, así que `npm run db:push` sigue yendo siempre a desarrollo.
+3. **Configúralo igual que desarrollo**: Auth (Site URL y Redirect URLs, SMTP de Resend del
+   [nivel 4](04-emails-con-resend.md), **Confirm email activado**, proveedores sociales), secrets
+   de Edge Functions (`npx supabase secrets set … --project-ref REF_DE_PRODUCCION`), Database
+   Webhooks (nivel 4) y, si usas push, los secretos de Vault ([nivel 8](08-notificaciones-push.md)).
+4. **EAS environments**: cada entorno de EAS apunta a un proyecto distinto. `development` y
+   `preview` se quedan con desarrollo; cambia `production` para que use producción (repite con
+   `EXPO_PUBLIC_SUPABASE_KEY`):
 
    ```bash
-   eas env:set --name EXPO_PUBLIC_SUPABASE_URL --value https://REF_DE_STAGING.supabase.co --environment preview --visibility plaintext
+   eas env:set --name EXPO_PUBLIC_SUPABASE_URL --value https://REF_DE_PRODUCCION.supabase.co --environment production --visibility plaintext
    ```
 
-   Y deja `production` con los valores de producción. Revisa ambos con `eas env:list`. El
-   workflow `eas-update.yml` ya publica cada canal con su entorno (`--environment` = canal), así
-   que un update de `preview` nunca apuntará a la base de datos de producción.
+   Revisa ambos con `eas env:list`. El workflow `eas-update.yml` ya publica cada canal con su
+   entorno (`--environment` = canal), así que un update de `preview` nunca apuntará a la base de
+   datos de producción.
 
-4. **Tu `.env` local** sigue apuntando al Supabase local. Si alguna vez quieres probar contra
-   staging desde tu ordenador, baja sus variables:
+5. **Tu `.env`** sigue apuntando a desarrollo: tu día a día no cambia. No pongas nunca en él los
+   datos de producción.
+6. **GitHub Actions**: con los secrets del paso 2, cada merge en `main` que toque `supabase/` se
+   despliega en **producción**. Como antes lo has probado todo en desarrollo, para empezar basta.
+   Si prefieres que producción solo se actualice cuando tú lo apruebes, usa **GitHub
+   Environments** (Settings → Environments → `production`, con sus `SUPABASE_PROJECT_REF`,
+   `SUPABASE_DB_PASSWORD`… y _Required reviewers_). Es un cambio de YAML delicado: pídeselo a
+   Claude (ver al final).
 
-   ```bash
-   eas env:pull --environment preview
-   ```
-
-   Esto crea `.env.local` (no se sube a git), que **tiene prioridad** sobre `.env`: mientras
-   exista, tu app en desarrollo usará staging. Bórralo para volver a tu base local.
-
-5. **GitHub Actions**: hoy `deploy-supabase.yml` despliega en **un** proyecto al hacer merge en
-   `main`. Pásalo a dos pasos usando **GitHub Environments** (Settings → Environments →
-   `staging` y `production`, cada uno con sus `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`…):
-   - Merge en `main` → despliega en **staging** automáticamente.
-   - Botón manual (_Run workflow_) o crear un _release_ → despliega en **producción**, con
-     aprobación obligatoria (GitHub Environments → _Required reviewers_).
-
-   Es un cambio de YAML delicado: pídeselo a Claude (ver al final).
-
-El flujo diario queda así: PR → CI verde → merge → staging se actualiza solo → pruebas en la app
-`preview` → lanzas el deploy de producción → `eas update` a `production` o build nuevo.
+El flujo diario queda así: migración o función nueva → `npm run db:push` (o
+`npx supabase functions deploy <nombre> --use-api`) a desarrollo → pruebas en el móvil → PR → CI
+verde → merge → producción se actualiza → `eas update` a `production` o build nuevo.
 
 ### Opcional: Supabase Branching
 
@@ -136,7 +144,7 @@ el seed), y la borra al cerrar el PR. Es como tener un staging por cambio. Se co
 integración de GitHub y cobra por hora cada rama encendida (~0,013 $/h, unos 10 $/mes si
 estuviera siempre encendida; sept. 2026, compruébalo). Solapa con el workflow de despliegue:
 si lo activas, deja que Branching despliegue y simplifica `deploy-supabase.yml`. Para una persona
-sola, staging suele bastar. [Docs de Branching](https://supabase.com/docs/guides/deployment/branching).
+sola, desarrollo + producción suele bastar. [Docs de Branching](https://supabase.com/docs/guides/deployment/branching).
 
 ## 3. Expo / EAS de pago
 
@@ -176,10 +184,10 @@ repartida (~8 $/mes).
 
 | Etapa                                              | Qué tienes                                | Servicios de pago                                                                            | Total aprox./mes                                                         |
 | -------------------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| **Hobby**                                          | Solo tú, en local o nube gratis           | Ninguno (Apple si pruebas en iPhone)                                                         | **0 $** (≈8 $ con Apple)                                                 |
+| **Hobby**                                          | Solo tú, con tu proyecto gratis           | Ninguno (Apple si pruebas en iPhone)                                                         | **0 $** (≈8 $ con Apple)                                                 |
 | **Beta con amigos** (≤ 50 personas)                | Nube gratis, builds `preview`, TestFlight | Apple, dominio                                                                               | **≈9 $**                                                                 |
 | **Lanzamiento** (tiendas, cientos–pocos miles)     | App publicada, usuarios reales            | Supabase Pro, Apple, dominio (+ Google 25 $ una vez)                                         | **≈35 $** (≈42 $ con email profesional)                                  |
-| **Con ingresos** (miles de usuarios, quizá equipo) | Staging + producción, OTA frecuentes      | Supabase Pro + 2.º proyecto, EAS Starter, Sentry Team, Resend Pro, Workspace, Apple, dominio | **≈120–180 $** + PostHog por uso + 1 % RevenueCat + comisiones de tienda |
+| **Con ingresos** (miles de usuarios, quizá equipo) | Desarrollo + producción, OTA frecuentes   | Supabase Pro + 2.º proyecto, EAS Starter, Sentry Team, Resend Pro, Workspace, Apple, dominio | **≈120–180 $** + PostHog por uso + 1 % RevenueCat + comisiones de tienda |
 
 Si tu app cobra, compara siempre ese total con lo que ingresas: un buen objetivo es que la
 infraestructura no pase del 10–20 % de los ingresos.
@@ -244,26 +252,27 @@ servidor propio o una herramienta externa con `postgres://…`: usa entonces la 
 ## ✅ Cómo sé que ha funcionado
 
 - Supabase → Billing muestra **Pro** y en Database → Backups aparecen copias diarias.
-- Tienes dos proyectos (staging y prod). El build `preview` guarda datos en staging y el de la
-  tienda en producción (crea una nota con cada uno y compruébalo en cada dashboard).
-- Un merge en `main` despliega solo en staging; producción solo con tu aprobación.
+- Tienes dos proyectos (desarrollo y producción). El build `preview` guarda datos en desarrollo
+  y el de la tienda en producción (crea una nota con cada uno y compruébalo en cada dashboard).
+- Un merge en `main` que toca `supabase/` llega a producción (solo tras tu aprobación, si
+  configuraste GitHub Environments).
 - Security Advisor y Performance Advisor sin avisos rojos.
 - Sabes cuánto pagas al mes y tienes límites de gasto donde se puede.
 
 ## 🧯 Problemas típicos
 
-- **"Mi app de la tienda ve datos de staging"** (o al revés): variables de EAS cruzadas. Revisa
+- **"Mi app de la tienda ve datos de desarrollo"** (o al revés): variables de EAS cruzadas. Revisa
   `eas env:list --environment production` y `--environment preview`; tras corregir, build nuevo
   o update con el entorno correcto.
-- **Una migración funciona en staging pero falla en producción**: los datos reales son distintos
+- **Una migración funciona en desarrollo pero falla en producción**: los datos reales son distintos
   (p. ej. filas que no cumplen un `check` nuevo). Prueba con una copia de datos parecida y escribe
   migraciones que toleren los datos existentes.
 - **Supabase te limita el servicio** con el spend cap activado: miras en Usage qué se ha
   disparado (egress, almacenamiento…) antes de quitar el límite.
 - **Te llega un aviso de Supabase por egress alto**: suele ser por descargar imágenes grandes sin
   caché o listas sin paginar. Revisa la sección 6c antes de subir de plan.
-- **Olvidaste configurar algo en staging** (SMTP, secrets, Vault): haz una lista de "todo lo que
-  se configura a mano" y repásala en ambos proyectos.
+- **Olvidaste configurar algo en producción** (SMTP, secrets, Vault, webhooks): haz una lista de
+  "todo lo que se configura a mano" y repásala en ambos proyectos.
 
 ## Pedírselo a Claude
 
@@ -274,9 +283,9 @@ servidor propio o una herramienta externa con `postgres://…`: usa entonces la 
 Otros ejemplos:
 
 - "Tengo X usuarios y estos servicios: ¿qué me conviene pagar ya y qué puede esperar?"
-- "Monta staging y producción: dos proyectos Supabase, EAS environments y cambia
-  `deploy-supabase.yml` para desplegar en staging al hacer merge y en producción con aprobación
-  manual usando GitHub Environments."
+- "Voy a publicar: guíame para crear el proyecto de producción, ajusta los EAS environments y
+  cambia `deploy-supabase.yml` para que producción solo se despliegue con mi aprobación usando
+  GitHub Environments."
 - "Estos son los avisos del Performance Advisor _(pégalos)_: escribe la migración que los arregla."
 - "La lista de notas va lenta con muchos datos: añade paginación infinita."
 - "Crea un workflow semanal que haga `supabase db dump` y lo guarde cifrado como artefacto."

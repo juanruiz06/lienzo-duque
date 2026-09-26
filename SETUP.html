@@ -1,0 +1,1521 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Montaje de Lienzo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap"
+    />
+    <style>
+      /* Colores = los de la app (src/theme/tokens.ts), para que la guía se sienta parte del proyecto. */
+      :root {
+        color-scheme: light;
+        --bg: #f6f4ef;
+        --surface: #ffffff;
+        --surface-muted: #efebe3;
+        --border: #e2ddd3;
+        --text: #1c1a17;
+        --text-muted: #6b665e;
+        --text-faint: #a19b91;
+        --primary: #3d5afe;
+        --primary-soft: #e6eaff;
+        --on-primary: #ffffff;
+        --ok: #2e9e6a;
+        --ok-soft: #e3f4ec;
+        --warn: #b7791f;
+        --warn-soft: #fbf1dc;
+        --code-bg: #1d1f2b;
+        --code-text: #e8e9f3;
+        --code-muted: #8a8fa8;
+        --font-body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+        --font-mono: 'JetBrains Mono', Consolas, 'Cascadia Mono', ui-monospace, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          color-scheme: dark;
+          --bg: #121212;
+          --surface: #1c1c1e;
+          --surface-muted: #26262a;
+          --border: #34343a;
+          --text: #f2f0eb;
+          --text-muted: #a8a39a;
+          --text-faint: #6e6a63;
+          --primary: #8c9aff;
+          --primary-soft: #23284a;
+          --on-primary: #0b0d1f;
+          --ok: #4cc38a;
+          --ok-soft: #173326;
+          --warn: #e5b45c;
+          --warn-soft: #33290f;
+          --code-bg: #0b0c12;
+          --code-text: #e8e9f3;
+          --code-muted: #7d8299;
+        }
+      }
+      :root[data-theme='dark'] {
+        color-scheme: dark;
+        --bg: #121212;
+        --surface: #1c1c1e;
+        --surface-muted: #26262a;
+        --border: #34343a;
+        --text: #f2f0eb;
+        --text-muted: #a8a39a;
+        --text-faint: #6e6a63;
+        --primary: #8c9aff;
+        --primary-soft: #23284a;
+        --on-primary: #0b0d1f;
+        --ok: #4cc38a;
+        --ok-soft: #173326;
+        --warn: #e5b45c;
+        --warn-soft: #33290f;
+        --code-bg: #0b0c12;
+        --code-text: #e8e9f3;
+        --code-muted: #7d8299;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 88px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        * {
+          transition: none !important;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 17px;
+        line-height: 1.6;
+        padding-inline: 16px;
+        padding-block: 0 64px;
+      }
+      a {
+        color: var(--primary);
+        text-underline-offset: 3px;
+      }
+      a:focus-visible,
+      button:focus-visible,
+      input:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid var(--primary);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: var(--font-display);
+        line-height: 1.15;
+        text-wrap: balance;
+        margin: 0;
+      }
+      p {
+        margin: 0;
+      }
+      kbd {
+        font-family: var(--font-mono);
+        font-size: 0.82em;
+        background: var(--surface-muted);
+        border: 1px solid var(--border);
+        border-bottom-width: 2px;
+        border-radius: 5px;
+        padding: 1px 6px;
+        white-space: nowrap;
+      }
+      .path {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--surface-muted);
+        border-radius: 5px;
+        padding: 1px 6px;
+      }
+      .ui {
+        font-weight: 700;
+      }
+
+      /* ── Barra de progreso fija ─────────────────────────────────────────────────── */
+      .progress-bar {
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        z-index: 5;
+        margin-inline: -16px;
+        padding: 12px 16px;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .progress-inner {
+        max-width: 1080px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .brand {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+      }
+      .track {
+        flex: 1;
+        height: 8px;
+        border-radius: 99px;
+        background: var(--surface-muted);
+        overflow: hidden;
+      }
+      .fill {
+        height: 100%;
+        width: 0;
+        background: var(--primary);
+        border-radius: 99px;
+        transition: width 0.4s ease;
+      }
+      .count {
+        font-variant-numeric: tabular-nums;
+        color: var(--text-muted);
+        font-size: 15px;
+        white-space: nowrap;
+      }
+
+      /* ── Layout: índice + pasos ─────────────────────────────────────────────────── */
+      .layout {
+        max-width: 1080px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 250px minmax(0, 1fr);
+        gap: 48px;
+        padding-top: 40px;
+      }
+      @media (max-width: 860px) {
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 24px;
+        }
+        .rail {
+          display: none;
+        }
+      }
+      .rail {
+        position: sticky;
+        top: 88px;
+        align-self: start;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 15px;
+      }
+      .rail-title {
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-bottom: 6px;
+      }
+      .rail a {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 5px 8px;
+        border-radius: 8px;
+      }
+      .rail a:hover {
+        background: var(--surface-muted);
+        color: var(--text);
+      }
+      .rail .n {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        width: 20px;
+        flex: none;
+        color: var(--text-faint);
+      }
+      .rail a.done {
+        color: var(--ok);
+      }
+      .rail a.done .n {
+        color: var(--ok);
+      }
+      .rail a.done .n::before {
+        content: '✓';
+      }
+      .rail a.done .n span {
+        display: none;
+      }
+      .rail .reset {
+        margin-top: 16px;
+        align-self: flex-start;
+      }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        min-width: 0;
+      }
+
+      /* ── Portada ────────────────────────────────────────────────────────────────── */
+      .intro {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        max-width: 68ch;
+      }
+      .eyebrow {
+        font-size: 13px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--primary);
+        font-weight: 700;
+      }
+      .intro h1 {
+        font-size: clamp(34px, 6vw, 52px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .lede {
+        font-size: 19px;
+        color: var(--text-muted);
+      }
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      @media (max-width: 560px) {
+        .facts {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .fact {
+        background: var(--surface);
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .fact b {
+        font-family: var(--font-display);
+        font-size: 24px;
+      }
+      .fact span {
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+      .needs {
+        font-size: 16px;
+        color: var(--text-muted);
+      }
+
+      /* ── Paso ───────────────────────────────────────────────────────────────────── */
+      .step {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        transition: border-color 0.2s;
+      }
+      @media (max-width: 560px) {
+        .step {
+          padding: 18px;
+        }
+      }
+      .step.is-done {
+        border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+      }
+      .step-head {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .num {
+        flex: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 19px;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+      .step.is-done .num {
+        background: var(--ok-soft);
+        color: var(--ok);
+      }
+      .step-head h2 {
+        font-size: 24px;
+        font-weight: 800;
+        padding-top: 5px;
+      }
+      .step-head .meta {
+        font-size: 14px;
+        color: var(--text-faint);
+        margin-top: 4px;
+      }
+      .why {
+        color: var(--text-muted);
+        max-width: 68ch;
+      }
+      .body {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        max-width: 72ch;
+      }
+      ol.do {
+        margin: 0;
+        padding-left: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      ol.do li::marker {
+        color: var(--text-faint);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Bloque de comando */
+      .cmd {
+        display: flex;
+        align-items: stretch;
+        background: var(--code-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        min-width: 0;
+      }
+      .cmd code {
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+        padding: 13px 16px;
+        font-family: var(--font-mono);
+        font-size: 15px;
+        color: var(--code-text);
+        white-space: pre;
+      }
+      .cmd code::before {
+        content: '>';
+        color: var(--code-muted);
+        margin-right: 10px;
+      }
+      .copy {
+        flex: none;
+        border: 0;
+        border-left: 1px solid color-mix(in srgb, var(--code-muted) 30%, transparent);
+        background: transparent;
+        color: var(--code-muted);
+        font: 600 13px var(--font-body);
+        padding: 0 16px;
+        cursor: pointer;
+      }
+      .copy:hover {
+        color: var(--code-text);
+      }
+      .copy.copied {
+        color: #7ee2b0;
+      }
+
+      /* Enlaces-botón a webs de descarga */
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: var(--surface-muted);
+        color: var(--text);
+        font: 700 15px var(--font-body);
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .btn:hover {
+        border-color: var(--primary);
+      }
+      .btn.primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: var(--on-primary);
+      }
+      .btn .arrow {
+        font-size: 13px;
+        opacity: 0.8;
+      }
+
+      /* Notas */
+      .note {
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 16px;
+        display: flex;
+        gap: 10px;
+      }
+      .note.check {
+        background: var(--ok-soft);
+      }
+      .note.warn {
+        background: var(--warn-soft);
+      }
+      .note .tag {
+        flex: none;
+        font-weight: 700;
+      }
+      .note.check .tag {
+        color: var(--ok);
+      }
+      .note.warn .tag {
+        color: var(--warn);
+      }
+
+      /* Terminal simulada (qué verás) */
+      .screen {
+        font-family: var(--font-mono);
+        font-size: 13.5px;
+        line-height: 1.55;
+        background: var(--code-bg);
+        color: var(--code-muted);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin: 0;
+        overflow-x: auto;
+        white-space: pre;
+      }
+      .screen b {
+        color: var(--code-text);
+        font-weight: 600;
+      }
+      .screen i {
+        color: #7ee2b0;
+        font-style: normal;
+      }
+
+      /* Problemas */
+      details {
+        border-top: 1px dashed var(--border);
+        padding-top: 12px;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 700;
+        color: var(--text-muted);
+        font-size: 15px;
+      }
+      details[open] summary {
+        margin-bottom: 10px;
+      }
+      dl {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        font-size: 16px;
+      }
+      dt {
+        font-weight: 700;
+      }
+      dd {
+        margin: 2px 0 0;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* Casilla "Hecho" */
+      .done-row {
+        display: flex;
+        justify-content: flex-end;
+      }
+      .done-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 8px 14px 8px 10px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+      }
+      .done-toggle input {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--ok);
+        margin: 0;
+      }
+      .step.is-done .done-toggle {
+        color: var(--ok);
+        border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+        background: var(--ok-soft);
+      }
+
+      .section-label {
+        font-size: 13px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        font-weight: 700;
+        margin-top: 12px;
+      }
+      .finale {
+        background: var(--primary);
+        color: var(--on-primary);
+        border-radius: 18px;
+        padding: 28px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .finale h2 {
+        font-size: 28px;
+        font-weight: 800;
+      }
+      .finale a {
+        color: var(--on-primary);
+      }
+      .finale ul {
+        margin: 0;
+        padding-left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .reset {
+        border: 0;
+        background: none;
+        color: var(--text-faint);
+        font: 14px var(--font-body);
+        text-decoration: underline;
+        cursor: pointer;
+        padding: 4px 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar" role="region" aria-label="Progreso">
+      <div class="progress-inner">
+        <div class="brand">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <rect
+              x="2"
+              y="3"
+              width="20"
+              height="16"
+              rx="3"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+            />
+            <path
+              d="M7 22l5-3 5 3"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M6 14l4-4 3 3 5-5"
+              fill="none"
+              stroke="#3d5afe"
+              stroke-width="2.2"
+              stroke-linecap="round"
+            />
+          </svg>
+          Lienzo
+        </div>
+        <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+        <div class="count" id="count" aria-live="polite">0 de 10</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <nav class="rail" aria-label="Pasos">
+        <div class="rail-title">Pasos</div>
+        <a href="#node"
+          ><span class="n"><span>1</span></span
+          >Node.js</a
+        >
+        <a href="#git"
+          ><span class="n"><span>2</span></span
+          >Git</a
+        >
+        <a href="#vscode"
+          ><span class="n"><span>3</span></span
+          >Visual Studio Code</a
+        >
+        <a href="#expogo"
+          ><span class="n"><span>4</span></span
+          >Expo Go en el móvil</a
+        >
+        <a href="#carpeta"
+          ><span class="n"><span>5</span></span
+          >La carpeta del proyecto</a
+        >
+        <a href="#install"
+          ><span class="n"><span>6</span></span
+          >Descargar las piezas</a
+        >
+        <a href="#supabase"
+          ><span class="n"><span>7</span></span
+          >Tu base de datos</a
+        >
+        <a href="#setup"
+          ><span class="n"><span>8</span></span
+          >Conectar la app</a
+        >
+        <a href="#start"
+          ><span class="n"><span>9</span></span
+          >Abrirla en el móvil</a
+        >
+        <a href="#prueba"
+          ><span class="n"><span>10</span></span
+          >Primer cambio</a
+        >
+        <button class="reset" id="reset" type="button">Empezar de cero</button>
+      </nav>
+
+      <main>
+        <header class="intro">
+          <div class="eyebrow">Guía de montaje · Windows</div>
+          <h1>De cero a tu app funcionando en el móvil</h1>
+          <p class="lede">
+            Diez pasos, en orden. En cada uno te decimos qué hacer, por qué, y cómo saber que ha ido
+            bien. Marca <span class="ui">Hecho</span> al terminar cada paso: esta página lo
+            recuerda.
+          </p>
+          <div class="facts">
+            <div class="fact"><b>0 €</b><span>Todo gratis</span></div>
+            <div class="fact"><b>~45 min</b><span>Casi todo es esperar descargas</span></div>
+            <div class="fact"><b>0</b><span>Conocimientos previos</span></div>
+          </div>
+          <p class="needs">
+            Necesitas: un ordenador con <b>Windows 10 u 11</b>, tu <b>móvil</b> (Android o iPhone)
+            conectado a la <b>misma wifi</b> que el ordenador, y un <b>email</b>. No hace falta Mac.
+          </p>
+        </header>
+
+        <div class="section-label">Parte 1 · Instalar los programas (una sola vez)</div>
+
+        <!-- 1 · NODE -->
+        <section class="step" id="node" data-step="node">
+          <div class="step-head">
+            <div class="num">1</div>
+            <div>
+              <h2>Instala Node.js</h2>
+              <div class="meta">5 min · gratis</div>
+            </div>
+          </div>
+          <p class="why">
+            Es el "motor" que hace funcionar las herramientas de la app en tu ordenador. Sin él,
+            nada de lo demás arranca.
+          </p>
+          <div class="body">
+            <div class="links">
+              <a
+                class="btn primary"
+                href="https://nodejs.org/es/download"
+                target="_blank"
+                rel="noopener"
+              >
+                Descargar Node.js <span class="arrow">↗</span>
+              </a>
+            </div>
+            <ol class="do">
+              <li>
+                En la web, descarga el <span class="ui">Windows Installer (.msi)</span> de la
+                versión marcada <span class="ui">LTS</span>.
+              </li>
+              <li>Ábrelo y pulsa <span class="ui">Next</span> hasta el final, sin cambiar nada.</li>
+              <li>
+                Si aparece una casilla
+                <span class="ui">"Automatically install the necessary tools"</span>, déjala
+                <b>sin marcar</b>. No hace falta.
+              </li>
+              <li>
+                Abre la <b>Terminal</b>: clic derecho en el botón de Inicio →
+                <span class="ui">Terminal</span> (en Windows 10: busca
+                <span class="ui">PowerShell</span> en el menú Inicio). Escribe esto y pulsa
+                <kbd>Enter</kbd>:
+              </li>
+            </ol>
+            <div class="cmd">
+              <code>node --version</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <div class="note check">
+              <span class="tag">Bien si…</span>
+              <span
+                >sale algo como <span class="path">v22.14.0</span> o
+                <span class="path">v24.x</span> (un número 20 o mayor).</span
+              >
+            </div>
+          </div>
+          <details>
+            <summary>¿Algo no va?</summary>
+            <dl>
+              <div>
+                <dt>"node no se reconoce como nombre de un cmdlet…"</dt>
+                <dd>
+                  Cierra la Terminal y ábrela otra vez (se abrió antes de instalar Node). Si sigue,
+                  reinicia el ordenador.
+                </dd>
+              </div>
+            </dl>
+          </details>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-node" /> Hecho</label>
+          </div>
+        </section>
+
+        <!-- 2 · GIT -->
+        <section class="step" id="git" data-step="git">
+          <div class="step-head">
+            <div class="num">2</div>
+            <div>
+              <h2>Instala Git</h2>
+              <div class="meta">5 min · gratis</div>
+            </div>
+          </div>
+          <p class="why">
+            Git guarda el historial de todos los cambios de tu app, como un "deshacer" infinito. Lo
+            usan también Claude y GitHub.
+          </p>
+          <div class="body">
+            <div class="links">
+              <a
+                class="btn primary"
+                href="https://git-scm.com/downloads/win"
+                target="_blank"
+                rel="noopener"
+              >
+                Descargar Git for Windows <span class="arrow">↗</span>
+              </a>
+            </div>
+            <ol class="do">
+              <li>Descarga el instalador <span class="ui">64-bit Git for Windows Setup</span>.</li>
+              <li>
+                Pulsa <span class="ui">Next</span> en todas las pantallas sin cambiar nada (son
+                muchas; es normal).
+              </li>
+              <li>Cierra la Terminal, ábrela de nuevo y escribe:</li>
+            </ol>
+            <div class="cmd">
+              <code>git --version</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <div class="note check">
+              <span class="tag">Bien si…</span>
+              <span>sale <span class="path">git version 2.xx…</span></span>
+            </div>
+          </div>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-git" /> Hecho</label>
+          </div>
+        </section>
+
+        <!-- 3 · VS CODE -->
+        <section class="step" id="vscode" data-step="vscode">
+          <div class="step-head">
+            <div class="num">3</div>
+            <div>
+              <h2>Instala Visual Studio Code</h2>
+              <div class="meta">3 min · gratis</div>
+            </div>
+          </div>
+          <p class="why">
+            Es el programa donde verás y cambiarás el código. Trae una terminal dentro, así tendrás
+            todo en una ventana.
+          </p>
+          <div class="body">
+            <div class="links">
+              <a
+                class="btn primary"
+                href="https://code.visualstudio.com/Download"
+                target="_blank"
+                rel="noopener"
+              >
+                Descargar VS Code <span class="arrow">↗</span>
+              </a>
+            </div>
+            <ol class="do">
+              <li>
+                Descarga la versión de <span class="ui">Windows</span> e instálala con las opciones
+                por defecto.
+              </li>
+              <li>
+                Recomendado: en la pantalla de opciones, marca
+                <span class="ui">"Add 'Open with Code' action…"</span>. Así podrás abrir carpetas
+                con clic derecho.
+              </li>
+            </ol>
+          </div>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-vscode" /> Hecho</label>
+          </div>
+        </section>
+
+        <!-- 4 · EXPO GO -->
+        <section class="step" id="expogo" data-step="expogo">
+          <div class="step-head">
+            <div class="num">4</div>
+            <div>
+              <h2>Instala Expo Go en tu móvil</h2>
+              <div class="meta">2 min · gratis</div>
+            </div>
+          </div>
+          <p class="why">
+            Expo Go abre tu app en el móvil mientras la construyes, sin publicarla ni compilar nada.
+            Cada vez que guardes un cambio, lo verás en el móvil en un segundo.
+          </p>
+          <div class="body">
+            <div class="links">
+              <a
+                class="btn"
+                href="https://play.google.com/store/apps/details?id=host.exp.exponent"
+                target="_blank"
+                rel="noopener"
+              >
+                Android · Google Play <span class="arrow">↗</span>
+              </a>
+              <a
+                class="btn"
+                href="https://apps.apple.com/app/expo-go/id982107779"
+                target="_blank"
+                rel="noopener"
+              >
+                iPhone · App Store <span class="arrow">↗</span>
+              </a>
+            </div>
+            <p>
+              O búscala en la tienda de tu móvil como <b>Expo Go</b>. No hace falta crear cuenta.
+            </p>
+          </div>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-expogo" /> Hecho</label>
+          </div>
+        </section>
+
+        <div class="section-label">Parte 2 · Preparar el proyecto</div>
+
+        <!-- 5 · CARPETA -->
+        <section class="step" id="carpeta" data-step="carpeta">
+          <div class="step-head">
+            <div class="num">5</div>
+            <div>
+              <h2>Pon el proyecto en su sitio y ábrelo</h2>
+              <div class="meta">3 min</div>
+            </div>
+          </div>
+          <p class="why">
+            La carpeta del proyecto tiene que estar <b>fuera de OneDrive</b> (Windows suele
+            sincronizar el Escritorio y Documentos, y se atasca con los miles de archivos de una
+            app).
+          </p>
+          <div class="body">
+            <ol class="do">
+              <li>
+                Crea la carpeta <span class="path">C:\proyectos</span> (en el Explorador:
+                <span class="ui">Este equipo</span> → <span class="ui">Disco local (C:)</span> →
+                clic derecho → <span class="ui">Nuevo → Carpeta</span>).
+              </li>
+              <li>
+                <b>Si te han pasado el proyecto en un ZIP</b>: clic derecho →
+                <span class="ui">Extraer todo…</span> → elige
+                <span class="path">C:\proyectos</span>. Si ya lo tienes en otra carpeta (como esta
+                guía), muévela ahí.
+              </li>
+              <li>
+                <b>Si te han pasado un enlace de GitHub</b>: en la Terminal escribe estos dos
+                comandos, cambiando <span class="path">URL-DEL-REPO</span> por el enlace:
+              </li>
+            </ol>
+            <div class="cmd">
+              <code>cd C:\proyectos</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <div class="cmd">
+              <code>git clone URL-DEL-REPO mi-app</code
+              ><button class="copy" type="button">Copiar</button>
+            </div>
+            <ol class="do" start="4">
+              <li>
+                Abre <b>VS Code</b> → menú <span class="ui">File</span> →
+                <span class="ui">Open Folder…</span> → elige la carpeta del proyecto (la que
+                contiene <span class="path">package.json</span>). Si pregunta "Do you trust the
+                authors?", pulsa <span class="ui">Yes, I trust</span>.
+              </li>
+              <li>
+                Abre la terminal de VS Code: menú <span class="ui">Terminal</span> →
+                <span class="ui">New Terminal</span> (o <kbd>Ctrl</kbd> + <kbd>ñ</kbd>).
+                <b>A partir de aquí, todos los comandos se escriben ahí.</b>
+              </li>
+            </ol>
+            <div class="note check">
+              <span class="tag">Bien si…</span>
+              <span
+                >abajo en VS Code ves una terminal que termina en algo como
+                <span class="path">PS C:\proyectos\mi-app&gt;</span></span
+              >
+            </div>
+          </div>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-carpeta" /> Hecho</label>
+          </div>
+        </section>
+
+        <!-- 6 · NPM INSTALL -->
+        <section class="step" id="install" data-step="install">
+          <div class="step-head">
+            <div class="num">6</div>
+            <div>
+              <h2>Descarga las piezas de la app</h2>
+              <div class="meta">3–5 min</div>
+            </div>
+          </div>
+          <p class="why">
+            La app usa cientos de piezas ya hechas por otros (librerías). Este comando las descarga
+            todas a una carpeta llamada <span class="path">node_modules</span>.
+          </p>
+          <div class="body">
+            <div class="cmd">
+              <code>npm install</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <div class="note check">
+              <span class="tag">Bien si…</span>
+              <span
+                >termina con algo como <span class="path">added 1100 packages</span>. Los avisos
+                amarillos (<span class="path">WARN</span>,
+                <span class="path">vulnerabilities</span>) son normales.</span
+              >
+            </div>
+          </div>
+          <details>
+            <summary>¿Algo no va?</summary>
+            <dl>
+              <div>
+                <dt>"la ejecución de scripts está deshabilitada en este sistema"</dt>
+                <dd>
+                  <span
+                    >Windows bloquea por defecto los comandos de npm en PowerShell. Permítelo solo
+                    para tu usuario (es lo habitual al programar):</span
+                  >
+                  <div class="cmd">
+                    <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code
+                    ><button class="copy" type="button">Copiar</button>
+                  </div>
+                  <span
+                    >Responde <kbd>S</kbd> y <kbd>Enter</kbd>. Luego repite
+                    <span class="path">npm install</span>.</span
+                  >
+                </dd>
+              </div>
+              <div>
+                <dt>"EPERM", "operation not permitted" o se queda colgado</dt>
+                <dd>
+                  Cierra VS Code, vuelve a abrirlo y repite. Si sigue, el antivirus o OneDrive
+                  pueden estar bloqueando archivos: comprueba el paso 5.
+                </dd>
+              </div>
+              <div>
+                <dt>"npm no se reconoce"</dt>
+                <dd>
+                  VS Code se abrió antes de instalar Node. Ciérralo del todo y ábrelo otra vez.
+                </dd>
+              </div>
+            </dl>
+          </details>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-install" /> Hecho</label>
+          </div>
+        </section>
+
+        <div class="section-label">Parte 3 · La base de datos (gratis, en internet)</div>
+
+        <!-- 7 · SUPABASE -->
+        <section class="step" id="supabase" data-step="supabase">
+          <div class="step-head">
+            <div class="num">7</div>
+            <div>
+              <h2>Crea tu base de datos en Supabase</h2>
+              <div class="meta">5 min · plan Free, sin tarjeta</div>
+            </div>
+          </div>
+          <p class="why">
+            Supabase guarda los datos de tu app (usuarios, notas…) en internet y se encarga del
+            login. El plan gratuito sobra para desarrollar y para tus primeros usuarios.
+          </p>
+          <div class="body">
+            <div class="links">
+              <a
+                class="btn primary"
+                href="https://supabase.com/dashboard"
+                target="_blank"
+                rel="noopener"
+              >
+                Abrir Supabase <span class="arrow">↗</span>
+              </a>
+            </div>
+            <ol class="do">
+              <li>Regístrate (con GitHub o con tu email).</li>
+              <li>
+                Si te pide crear una <span class="ui">organización</span>: ponle tu nombre y elige
+                el plan <span class="ui">Free</span>.
+              </li>
+              <li>
+                Pulsa <span class="ui">New project</span> y rellena:
+                <ul>
+                  <li><span class="ui">Project name</span>: el nombre de tu app.</li>
+                  <li>
+                    <span class="ui">Database password</span>: pulsa
+                    <span class="ui">Generate a password</span>, <b>cópiala y guárdala</b> en un
+                    sitio seguro (la necesitas en el paso 8).
+                  </li>
+                  <li>
+                    <span class="ui">Region</span>: <span class="ui">Europe</span> (Frankfurt o
+                    Ireland), lo más cerca de tus usuarios.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Pulsa <span class="ui">Create new project</span> y espera 1–2 minutos a que termine
+                de prepararse.
+              </li>
+            </ol>
+            <div class="note check">
+              <span class="tag">Bien si…</span>
+              <span>ves el panel de tu proyecto y ya no pone "Setting up project".</span>
+            </div>
+            <div class="note warn">
+              <span class="tag">Ojo</span>
+              <span
+                >En el plan gratis, si nadie usa el proyecto durante una semana, Supabase lo
+                "pausa". No se pierde nada: entras en el panel y pulsas
+                <span class="ui">Restore</span>.</span
+              >
+            </div>
+          </div>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-supabase" /> Hecho</label>
+          </div>
+        </section>
+
+        <!-- 8 · SETUP -->
+        <section class="step" id="setup" data-step="setup">
+          <div class="step-head">
+            <div class="num">8</div>
+            <div>
+              <h2>Conecta la app con tu base de datos</h2>
+              <div class="meta">5 min · un asistente lo hace por ti</div>
+            </div>
+          </div>
+          <p class="why">
+            Este asistente guarda la dirección de tu base de datos en la app y crea las tablas
+            (usuarios, notas) con sus reglas de seguridad. Solo tienes que contestar a lo que
+            pregunte.
+          </p>
+          <div class="body">
+            <div class="cmd">
+              <code>npm run setup</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <p>Te irá pidiendo, en este orden:</p>
+            <ol class="do">
+              <li>
+                <b>Project URL</b> y <b>Publishable key</b>: en Supabase, pulsa el botón
+                <span class="ui">Connect</span> (arriba) o ve a
+                <span class="ui">Project Settings → API Keys</span>. Copia y pega cada uno (en la
+                terminal se pega con clic derecho o <kbd>Ctrl</kbd>+<kbd>V</kbd>).
+                <b>Nunca</b> copies la <span class="ui">Secret key</span>: el asistente te avisará
+                si lo haces.
+              </li>
+              <li>
+                <b>Iniciar sesión en Supabase</b>: se abre el navegador; pulsa el botón de autorizar
+                y vuelve a VS Code.
+              </li>
+              <li>
+                <b>Contraseña de la base de datos</b>: la que guardaste en el paso 7. No se ve al
+                escribirla (salen asteriscos).
+              </li>
+              <li>
+                <b>Un ajuste a mano</b>: en Supabase → <span class="ui">Authentication</span> →
+                <span class="ui">Sign In / Providers</span> → <span class="ui">Email</span> →
+                desactiva <span class="ui">Confirm email</span> → <span class="ui">Save</span>. Así,
+                mientras desarrollas, no hace falta confirmar el email para registrarse. Luego pulsa
+                <kbd>Enter</kbd>.
+              </li>
+            </ol>
+            <pre
+              class="screen"
+              aria-label="Ejemplo de lo que verás"
+            ><b>── Paso 4/6 · Crear las tablas (migraciones)</b>
+Applying migration 20260926000000_base.sql...
+Applying migration 20260926000100_notes.sql...
+<b>── Paso 6/6 · Subir la función "borrar cuenta"</b>
+Deployed Functions on project abcdefghijklmnopqrst: delete-account
+
+<i>✅ ¡Listo! La app ya está conectada a tu base de datos.</i></pre>
+            <div class="note check">
+              <span class="tag">Bien si…</span>
+              <span
+                >termina con <b>✅ ¡Listo!</b> En Supabase →
+                <span class="ui">Table Editor</span> verás las tablas
+                <span class="path">notes</span> y <span class="path">profiles</span>.</span
+              >
+            </div>
+          </div>
+          <details>
+            <summary>¿Algo no va?</summary>
+            <dl>
+              <div>
+                <dt>Falla en "Enlazar con tu proyecto" o "password authentication failed"</dt>
+                <dd>
+                  La contraseña no es la de la base de datos. En Supabase →
+                  <span class="ui">Project Settings → Database</span> →
+                  <span class="ui">Reset database password</span>, guarda la nueva y repite
+                  <span class="path">npm run setup</span>.
+                </dd>
+              </div>
+              <div>
+                <dt>Se cortó a medias o cerraste la ventana</dt>
+                <dd>
+                  Vuelve a ejecutar <span class="path">npm run setup</span>. Es seguro repetirlo: lo
+                  que ya está hecho se salta.
+                </dd>
+              </div>
+              <div>
+                <dt>Aviso en "Subir la función borrar cuenta"</dt>
+                <dd>
+                  La app funciona igual; solo el botón "Borrar mi cuenta" fallará. Repite
+                  <span class="path">npm run setup</span> más tarde.
+                </dd>
+              </div>
+            </dl>
+          </details>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-setup" /> Hecho</label>
+          </div>
+        </section>
+
+        <div class="section-label">Parte 4 · ¡A verla!</div>
+
+        <!-- 9 · START -->
+        <section class="step" id="start" data-step="start">
+          <div class="step-head">
+            <div class="num">9</div>
+            <div>
+              <h2>Abre la app en tu móvil</h2>
+              <div class="meta">2 min</div>
+            </div>
+          </div>
+          <p class="why">
+            Este comando pone en marcha el servidor de desarrollo. Mientras esté funcionando, tu
+            móvil carga la app desde tu ordenador. Déjalo abierto mientras trabajas.
+          </p>
+          <div class="body">
+            <div class="cmd">
+              <code>npm start</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <ol class="do">
+              <li>
+                Si Windows pregunta por el <b>Firewall</b> ("permitir que Node.js acceda a redes"),
+                marca <span class="ui">Redes privadas</span> y pulsa
+                <span class="ui">Permitir</span>.
+              </li>
+              <li>En la terminal aparece un <b>código QR</b>.</li>
+              <li>
+                <b>Android</b>: abre Expo Go → <span class="ui">Scan QR code</span>. <b>iPhone</b>:
+                abre la cámara, apunta al QR y toca el aviso que sale.
+              </li>
+              <li>
+                La primera carga tarda unos segundos. En la app, pulsa
+                <span class="ui">Regístrate</span> y crea tu cuenta.
+              </li>
+            </ol>
+            <div class="note check">
+              <span class="tag">Bien si…</span>
+              <span
+                >entras y ves "Aún no tienes notas". Crea una. Si sale, tu app ya guarda datos en tu
+                base de datos. 🎉</span
+              >
+            </div>
+            <p>
+              Para pararlo: <kbd>Ctrl</kbd> + <kbd>C</kbd> en la terminal. Mañana, para seguir, solo
+              <span class="path">npm start</span>.
+            </p>
+          </div>
+          <details>
+            <summary>¿Algo no va?</summary>
+            <dl>
+              <div>
+                <dt>El móvil no conecta o se queda cargando</dt>
+                <dd>
+                  <span
+                    >Comprueba que móvil y ordenador están en la misma wifi. Si es la wifi de una
+                    universidad, oficina o biblioteca, suelen bloquear esto. Para, y arranca en modo
+                    túnel (funciona en cualquier red, algo más lento):</span
+                  >
+                  <div class="cmd">
+                    <code>npm run start:tunnel</code
+                    ><button class="copy" type="button">Copiar</button>
+                  </div>
+                </dd>
+              </div>
+              <div>
+                <dt>Expo Go dice "Project is incompatible with this version of Expo Go"</dt>
+                <dd>Actualiza Expo Go desde la tienda de tu móvil.</dd>
+              </div>
+              <div>
+                <dt>La app dice "Configuración inválida"</dt>
+                <dd>
+                  Falta el paso 8. Ejecuta <span class="path">npm run setup</span> y después
+                  <span class="path">npm start</span> otra vez.
+                </dd>
+              </div>
+              <div>
+                <dt>Al registrarte: "Sin conexión" o "Confirma tu email"</dt>
+                <dd>
+                  "Sin conexión": el proyecto de Supabase puede estar pausado (paso 7,
+                  <span class="ui">Restore</span>). "Confirma tu email": te faltó desactivar
+                  <span class="ui">Confirm email</span> (paso 8, punto 4).
+                </dd>
+              </div>
+              <div>
+                <dt>Quiero verla en el ordenador</dt>
+                <dd>
+                  Con <span class="path">npm start</span> en marcha, pulsa la tecla <kbd>w</kbd>: se
+                  abre en el navegador. Útil para ir rápido, pero prueba siempre en el móvil.
+                </dd>
+              </div>
+            </dl>
+          </details>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-start" /> Hecho</label>
+          </div>
+        </section>
+
+        <!-- 10 · PRIMER CAMBIO -->
+        <section class="step" id="prueba" data-step="prueba">
+          <div class="step-head">
+            <div class="num">10</div>
+            <div>
+              <h2>Haz tu primer cambio</h2>
+              <div class="meta">2 min</div>
+            </div>
+          </div>
+          <p class="why">
+            Comprueba lo mejor de trabajar así: cambias el código y el móvil se actualiza solo.
+          </p>
+          <div class="body">
+            <ol class="do">
+              <li>
+                Con <span class="path">npm start</span> en marcha, cierra sesión en la app (pestaña
+                <span class="ui">Perfil</span> → <span class="ui">Cerrar sesión</span>).
+              </li>
+              <li>
+                En VS Code, abre <span class="path">src/app/(auth)/sign-in.tsx</span> (panel de la
+                izquierda).
+              </li>
+              <li>
+                Busca el texto <span class="path">Entra para ver tus notas.</span> y cámbialo por lo
+                que quieras.
+              </li>
+              <li>Guarda con <kbd>Ctrl</kbd> + <kbd>S</kbd> y mira el móvil.</li>
+            </ol>
+            <div class="note check">
+              <span class="tag">Bien si…</span>
+              <span>el texto cambia en el móvil en un segundo, sin hacer nada más.</span>
+            </div>
+            <p>Comprueba de paso que todo el proyecto está sano (tipos, estilo y tests):</p>
+            <div class="cmd">
+              <code>npm run check</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <p>
+              Y si algo va raro en cualquier momento, este comando revisa tu ordenador y te dice qué
+              falta:
+            </p>
+            <div class="cmd">
+              <code>npm run doctor</code><button class="copy" type="button">Copiar</button>
+            </div>
+          </div>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-prueba" /> Hecho</label>
+          </div>
+        </section>
+
+        <section class="finale" aria-labelledby="finale-title">
+          <h2 id="finale-title">Ya tienes tu app funcionando</h2>
+          <p>Todo lo que has montado es gratis. Siguientes pasos cuando quieras:</p>
+          <ul>
+            <li>
+              <b>Programar con Claude</b>: descarga la app de Claude para Windows (<a
+                href="https://claude.ai/download"
+                target="_blank"
+                rel="noopener"
+                >claude.ai/download</a
+              >), entra en la pestaña <b>Code</b>, abre la carpeta del proyecto y escribe
+              <b>/empezar</b>. Es lo único de pago de esta lista (necesita un plan de Claude, como
+              Pro); lo demás no lo necesita.
+            </li>
+            <li>
+              <b>Ponerle tu nombre</b>:
+              <span class="path">npm run rename -- "Mi App" com.tunombre.miapp</span>
+            </li>
+            <li>
+              <b>Entender cómo está hecha</b>: abre
+              <span class="path">docs/arquitectura.md</span> en VS Code.
+            </li>
+            <li>
+              <b>Cuando quieras enseñarla o publicarla</b>:
+              <span class="path">docs/graduacion/README.md</span> (cada nivel dice lo que cuesta).
+            </li>
+          </ul>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        var KEY = 'lienzo-setup-v1';
+        var steps = Array.prototype.slice.call(document.querySelectorAll('[data-step]'));
+
+        function load() {
+          try {
+            return JSON.parse(localStorage.getItem(KEY) || '{}') || {};
+          } catch (e) {
+            return {};
+          }
+        }
+        function save(state) {
+          try {
+            localStorage.setItem(KEY, JSON.stringify(state));
+          } catch (e) {
+            /* sin almacenamiento: el progreso no se recuerda, la guía funciona igual */
+          }
+        }
+
+        var state = load();
+
+        function render() {
+          var done = 0;
+          steps.forEach(function (step) {
+            var id = step.getAttribute('data-step');
+            var isDone = Boolean(state[id]);
+            if (isDone) done++;
+            step.classList.toggle('is-done', isDone);
+            var box = document.getElementById('done-' + id);
+            if (box) box.checked = isDone;
+            var link = document.querySelector('.rail a[href="#' + id + '"]');
+            if (link) link.classList.toggle('done', isDone);
+          });
+          document.getElementById('fill').style.width = (done / steps.length) * 100 + '%';
+          document.getElementById('count').textContent =
+            done === steps.length ? '¡Terminado!' : done + ' de ' + steps.length;
+        }
+
+        steps.forEach(function (step) {
+          var id = step.getAttribute('data-step');
+          var box = document.getElementById('done-' + id);
+          if (!box) return;
+          box.addEventListener('change', function () {
+            state[id] = box.checked;
+            save(state);
+            render();
+            if (box.checked) {
+              var next = steps[steps.indexOf(step) + 1];
+              if (next && !state[next.getAttribute('data-step')]) {
+                next.scrollIntoView({ block: 'start' });
+              }
+            }
+          });
+        });
+
+        // "Empezar de cero": pide un segundo clic en vez de un diálogo.
+        var reset = document.getElementById('reset');
+        var armed = false;
+        reset.addEventListener('click', function () {
+          if (!armed) {
+            armed = true;
+            reset.textContent = '¿Seguro? Pulsa otra vez';
+            setTimeout(function () {
+              armed = false;
+              reset.textContent = 'Empezar de cero';
+            }, 4000);
+            return;
+          }
+          state = {};
+          save(state);
+          armed = false;
+          reset.textContent = 'Empezar de cero';
+          render();
+          window.scrollTo(0, 0);
+        });
+
+        // Botones "Copiar"
+        document.querySelectorAll('.copy').forEach(function (button) {
+          button.addEventListener('click', function () {
+            var code = button.parentElement.querySelector('code');
+            var text = code.textContent;
+            function done() {
+              button.textContent = 'Copiado';
+              button.classList.add('copied');
+              setTimeout(function () {
+                button.textContent = 'Copiar';
+                button.classList.remove('copied');
+              }, 1600);
+            }
+            function fallback() {
+              var range = document.createRange();
+              range.selectNodeContents(code);
+              var sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+              try {
+                if (document.execCommand('copy')) return done();
+              } catch (e) {}
+              button.textContent = 'Ctrl+C';
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(done, fallback);
+            } else {
+              fallback();
+            }
+          });
+        });
+
+        render();
+      })();
+    </script>
+  </body>
+</html>

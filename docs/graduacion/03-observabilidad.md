@@ -43,7 +43,7 @@ Ya tienes los "enchufes" hechos; este nivel solo conecta los servicios:
 - `initObservability()` (`src/observability/index.ts`) se ejecuta una vez al arrancar. Ahí
   añadiremos `initSentry()` e `initPostHog()`.
 - `src/config/env.ts` ya acepta dos variables **opcionales**: `EXPO_PUBLIC_SENTRY_DSN` y
-  `EXPO_PUBLIC_POSTHOG_KEY`. **Sin clave = no se envía nada** (coste cero, útil en local).
+  `EXPO_PUBLIC_POSTHOG_KEY`. **Sin clave = no se envía nada** (coste cero, útil mientras desarrollas).
 
 ---
 
@@ -201,7 +201,7 @@ Así Sentry registra además los toques previos a un error ("breadcrumbs"). Son 
 
 ### 7. Configura las claves
 
-**Local** — añade el DSN a tu `.env` (es **público**):
+**En tu ordenador** — añade el DSN a tu `.env` (es **público**):
 
 ```dotenv
 EXPO_PUBLIC_SENTRY_DSN=https://xxxxx@oXXXX.ingest.de.sentry.io/XXXX
@@ -352,7 +352,7 @@ export async function setAnalyticsConsent(granted: boolean): Promise<void> {
 
 ### 4. Configura la clave
 
-**Local** — en `.env` (**pública**):
+**En tu ordenador** — en `.env` (**pública**):
 
 ```dotenv
 EXPO_PUBLIC_POSTHOG_KEY=phc_xxxxxxxxxxxxxxxxxxxxxxxx

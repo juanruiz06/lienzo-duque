@@ -13,7 +13,7 @@
 > revisión de Apple (normalmente 1–3 días) y, en Google con cuenta personal nueva, **14 días de
 > pruebas cerradas obligatorias** antes de poder publicar.
 >
-> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md) (Supabase en la nube), [Nivel 2](02-builds-con-eas.md)
+> **Requisitos:** [Nivel 1](01-nube-github-y-ci.md) (GitHub y CI), [Nivel 2](02-builds-con-eas.md)
 > (EAS), [Nivel 4](04-emails-con-resend.md) (emails que llegan). Muy recomendable el
 > [Nivel 3](03-observabilidad.md) (saber si la app falla en móviles ajenos).
 
@@ -53,7 +53,8 @@ El script cambia `app.json` (nombre, slug, esquema de enlaces `recetario://`, bu
 package de Android), `package.json` y `supabase/config.toml`. Después:
 
 1. Cambia el texto "Lienzo" de `src/app/(auth)/sign-in.tsx`.
-2. En el **Dashboard de Supabase (nube)** → Authentication → URL Configuration, cambia
+2. En el **Dashboard de Supabase** (en tu proyecto de desarrollo y, si ya lo tienes, en el de
+   producción) → Authentication → URL Configuration, cambia
    `lienzo://` por tu nuevo esquema en **Site URL** y **Redirect URLs** (si no, los enlaces de
    confirmación y de "olvidé mi contraseña" no abrirán la app).
 3. Si ya hiciste builds con EAS con el id antiguo, no pasa nada: EAS creará credenciales nuevas
@@ -145,11 +146,18 @@ en un máximo de 30 días". Requisitos de Google:
 
 ## Paso 5 — Deja la nube lista para los revisores
 
+Hasta ahora has trabajado con tu proyecto de Supabase de **desarrollo** (el de `npm run setup`),
+lleno de usuarios y datos de prueba. Los usuarios de las tiendas deben ir a un proyecto
+**nuevo y limpio de producción**: créalo y configúralo siguiendo el
+[nivel 10, sección 2](10-escalar-y-pagar-mas.md#2-entornos-separados-desarrollo-y-producción).
+Todo lo de este paso se hace **en el proyecto de producción**.
+
 1. **Borrar cuenta funciona en la nube**: la Edge Function `delete-account` tiene que estar
-   desplegada (el workflow `deploy-supabase.yml` lo hace al mergear en `main`; o a mano):
+   desplegada en producción (el workflow `deploy-supabase.yml` lo hace al mergear en `main` si
+   sus secrets apuntan a producción; o a mano, con el Project ref de producción):
 
    ```bash
-   npx supabase functions deploy delete-account
+   npx supabase functions deploy delete-account --use-api --project-ref TU_REF_DE_PRODUCCION
    ```
 
    Pruébalo en tu móvil: crea una cuenta de usar y tirar → Perfil → **Borrar mi cuenta**.
@@ -163,14 +171,15 @@ en un máximo de 30 días". Requisitos de Google:
    actividad. Si el revisor abre la app con el proyecto pausado, **te rechazan**. Entra tú en la
    app el día que envíes a revisión, o pasa a Pro ([nivel 10](10-escalar-y-pagar-mas.md)).
 4. **Variables de producción en EAS**: el perfil `production` de `eas.json` usa el entorno EAS
-   `production`. Comprueba que tiene las variables de la nube:
+   `production`. Comprueba que tiene las variables del proyecto de **producción**:
 
    ```bash
    eas env:list --environment production
    ```
 
-   Deben aparecer `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_KEY` (las del proyecto en la
-   nube, no las de `127.0.0.1`). Si faltan, añádelas (ver [nivel 2](02-builds-con-eas.md)).
+   Deben aparecer `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_KEY` (las del proyecto de
+   producción, no las de desarrollo ni las de `127.0.0.1`). Si faltan o son las de desarrollo,
+   cámbialas (ver [nivel 2](02-builds-con-eas.md)).
 
 ## Paso 6 — Compilar la versión de tienda
 
@@ -257,8 +266,9 @@ la exportación de cifrado en cada build.
   por comas), **URL de soporte** (obligatoria: puede ser tu página de Notion) y **URL de la política
   de privacidad**.
 - **Capturas**: App Store Connect te indica los tamaños obligatorios (hoy, los del iPhone más
-  grande). Como `supportsTablet` es `false`, **no necesitas capturas de iPad**. Hazlas en el
-  simulador del iPhone más grande con `Cmd + S`.
+  grande). Como `supportsTablet` es `false`, **no necesitas capturas de iPad**. Sin Mac no hay
+  simulador: hazlas en un iPhone grande con la build de TestFlight, o pide prestado uno y, si el
+  tamaño no cuadra, ajústalas con una herramienta de capturas para tiendas.
 - **Categoría** y **clasificación por edades**: responde el cuestionario (desde 2025 hay franjas
   4+, 9+, 13+, 16+ y 18+). Si los usuarios pueden publicar contenido que ven otros, dilo.
 - **App Privacy** ("etiquetas nutricionales"): ver paso 10.
@@ -338,7 +348,7 @@ tiendas con una actualización OTA: [nivel 7](07-actualizaciones-ota.md).
 ## ✅ Cómo sé que ha funcionado
 
 - Instalas la app desde **TestFlight** y desde la **prueba interna/cerrada** de Google, entras con
-  la cuenta demo y ves sus notas (eso demuestra que apunta a la nube, no a tu ordenador).
+  la cuenta demo y ves sus notas (eso demuestra que apunta a tu proyecto de producción).
 - Perfil → Borrar mi cuenta funciona con una cuenta de prueba (y desaparece en Supabase →
   Authentication → Users).
 - Tus URLs de privacidad y de borrado abren en una ventana de incógnito.
@@ -350,7 +360,7 @@ tiendas con una actualización OTA: [nivel 7](07-actualizaciones-ota.md).
 - **"Bundle ID … is not available"**: alguien ya lo usa (o lo usaste en otra cuenta). Elige otro
   y vuelve a ejecutar `npm run rename`.
 - **La app instalada no conecta / pantalla de error al abrir**: el build de producción no tiene
-  las variables de la nube. Revisa `eas env:list --environment production` y recompila.
+  las variables de producción. Revisa `eas env:list --environment production` y recompila.
 - **"The version code has already been used"**: alguien subió un build a mano. Ajusta el contador
   remoto con `eas build:version:set` y recompila.
 - **Google: "Tu app no cumple el requisito de testers"**: el reloj de 14 días se reinicia si bajas

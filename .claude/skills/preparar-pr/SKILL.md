@@ -27,7 +27,8 @@ npm run check
 npm run check:secrets
 ```
 
-Si hay cambios en `supabase/`: `npm run db:reset && npm run db:types && npm run check:rls`.
+Si hay cambios en `supabase/`: migración aplicada en su base de desarrollo y `npm run db:types`
+hecho (el CI comprobará que las migraciones aplican desde cero, las reglas RLS y los tipos).
 Si algo falla, arréglalo o explícalo; no abras un PR en rojo sin decirlo.
 
 ## 4. Commit
