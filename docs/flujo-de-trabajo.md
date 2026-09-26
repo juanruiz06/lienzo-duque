@@ -10,6 +10,10 @@ romper la app sin darte cuenta.
 idea → /planificar → rama → construir (/nueva-feature…) → npm run check → /preparar-pr → CI verde → merge a main
 ```
 
+O todo de una vez con **`/implement-task <lo que quieres>`**: Claude hace ese ciclo entero y se
+para a preguntarte en los momentos clave (qué opción prefieres, si el plan te vale, si en tu móvil
+se ve bien, si lo integramos).
+
 ### 1. Idea → spec
 
 Para cualquier cosa que toque la base de datos o más de una pantalla, escribe primero una spec
@@ -96,28 +100,31 @@ Claude lee automáticamente `CLAUDE.md` → `AGENTS.md` (el mapa del proyecto) y
 
 ### Skills disponibles
 
-| Quiero…                                | Escribe                      |
-| -------------------------------------- | ---------------------------- |
-| Configurar mi máquina la primera vez   | `/empezar`                   |
-| Entender algo                          | `/explicar <qué>`            |
-| Pensar una feature antes de hacerla    | `/planificar <idea>`         |
-| Construir una feature completa         | `/nueva-feature <qué>`       |
-| Solo cambiar la base de datos          | `/nueva-tabla <qué>`         |
-| Una pantalla nueva                     | `/nueva-pantalla <cuál>`     |
-| Un componente reutilizable             | `/nuevo-componente <cuál>`   |
-| Que se vea mejor                       | `/pulir-ui <pantalla>`       |
-| Fotos                                  | `/subir-imagenes <para qué>` |
-| Código de servidor con claves          | `/edge-function <qué>`       |
-| Medir algo                             | `/nuevo-evento <qué>`        |
-| Mandar emails                          | `/enviar-email <cuál>`       |
-| Arreglar un fallo                      | `/arreglar-bug <qué pasa>`   |
-| Tests                                  | `/escribir-tests <qué>`      |
-| Revisar la seguridad                   | `/revisar-seguridad`         |
-| Subir mis cambios                      | `/preparar-pr`               |
-| Siguiente nivel (GitHub, tiendas…)     | `/graduar`                   |
-| Sacar versión a las tiendas            | `/publicar`                  |
-| Arreglo rápido sin pasar por la tienda | `/actualizar-ota`            |
-| Actualizar Expo                        | `/actualizar-expo <versión>` |
+| Quiero…                                          | Escribe                      |
+| ------------------------------------------------ | ---------------------------- |
+| Configurar mi máquina la primera vez             | `/empezar`                   |
+| Entender algo                                    | `/explicar <qué>`            |
+| Hacer una tarea de principio a fin (recomendado) | `/implement-task <qué>`      |
+| Pensar una feature antes de hacerla              | `/planificar <idea>`         |
+| Construir una feature completa                   | `/nueva-feature <qué>`       |
+| Solo cambiar la base de datos                    | `/nueva-tabla <qué>`         |
+| Una pantalla nueva                               | `/nueva-pantalla <cuál>`     |
+| Un componente reutilizable                       | `/nuevo-componente <cuál>`   |
+| Que se vea mejor                                 | `/pulir-ui <pantalla>`       |
+| Fotos                                            | `/subir-imagenes <para qué>` |
+| Código de servidor con claves                    | `/edge-function <qué>`       |
+| Medir algo                                       | `/nuevo-evento <qué>`        |
+| Mandar emails                                    | `/enviar-email <cuál>`       |
+| Arreglar un fallo                                | `/arreglar-bug <qué pasa>`   |
+| Tests                                            | `/escribir-tests <qué>`      |
+| Revisar si el diseño aguanta                     | `/revisar-arquitectura`      |
+| Que no me hackeen (auditoría completa)           | `/anti-hackeo`               |
+| Revisión rápida de seguridad                     | `/revisar-seguridad`         |
+| Subir mis cambios                                | `/preparar-pr`               |
+| Siguiente nivel (GitHub, tiendas…)               | `/graduar`                   |
+| Sacar versión a las tiendas                      | `/publicar`                  |
+| Arreglo rápido sin pasar por la tienda           | `/actualizar-ota`            |
+| Actualizar Expo                                  | `/actualizar-expo <versión>` |
 
 ## Base de datos: desarrollo vs producción
 

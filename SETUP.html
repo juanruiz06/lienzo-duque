@@ -420,7 +420,8 @@
         font-family: var(--font-mono);
         font-size: 15px;
         color: var(--code-text);
-        white-space: pre;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
       }
       .cmd code::before {
         content: '>';
@@ -593,6 +594,156 @@
         font-weight: 700;
         margin-top: 12px;
       }
+      /* ── Parte 5: Claude ─────────────────────────────────────────────────────────── */
+      .guide {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .guide > p {
+        max-width: 68ch;
+        color: var(--text-muted);
+      }
+      .guide h2 {
+        font-size: 30px;
+        font-weight: 800;
+      }
+      .feature {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      @media (max-width: 560px) {
+        .feature {
+          padding: 18px;
+        }
+      }
+      .feature-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 6px 14px;
+      }
+      .slash {
+        font-family: var(--font-mono);
+        font-weight: 600;
+        font-size: 20px;
+        color: var(--primary);
+      }
+      .feature-head h3 {
+        font-size: 22px;
+        font-weight: 800;
+      }
+      .when {
+        font-size: 15px;
+        color: var(--text-muted);
+      }
+      .stops {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        counter-reset: stop;
+      }
+      @media (max-width: 760px) {
+        .stops {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .stops li {
+        counter-increment: stop;
+        background: var(--surface-muted);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .stops li::before {
+        content: 'Parada ' counter(stop);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--primary);
+      }
+      .stops b {
+        font-size: 16px;
+      }
+      .shield {
+        border: 1px dashed color-mix(in srgb, var(--warn) 60%, var(--border));
+        background: var(--warn-soft);
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 16px;
+      }
+      .shield ul {
+        margin: 0;
+        padding-left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .skill-groups {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+      @media (max-width: 760px) {
+        .skill-groups {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .skill-group {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .skill-group h3 {
+        font-size: 17px;
+        font-weight: 800;
+      }
+      .skill-group dl {
+        gap: 8px;
+        font-size: 15px;
+      }
+      .skill-group dt {
+        font-family: var(--font-mono);
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--primary);
+      }
+      .skill-group dd {
+        margin: 0;
+      }
+      .phrases {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .phrases li {
+        border-left: 3px solid var(--primary);
+        padding: 4px 0 4px 14px;
+        font-style: italic;
+        color: var(--text);
+      }
       .finale {
         background: var(--primary);
         color: var(--on-primary);
@@ -660,7 +811,7 @@
           Lienzo
         </div>
         <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
-        <div class="count" id="count" aria-live="polite">0 de 10</div>
+        <div class="count" id="count" aria-live="polite">0 de 11</div>
       </div>
     </div>
 
@@ -707,6 +858,11 @@
           ><span class="n"><span>10</span></span
           >Primer cambio</a
         >
+        <a href="#claude"
+          ><span class="n"><span>11</span></span
+          >Conectar Claude</a
+        >
+        <a href="#skills"><span class="n">→</span>Qué pedirle a Claude</a>
         <button class="reset" id="reset" type="button">Empezar de cero</button>
       </nav>
 
@@ -715,12 +871,13 @@
           <div class="eyebrow">Guía de montaje · Windows</div>
           <h1>De cero a tu app funcionando en el móvil</h1>
           <p class="lede">
-            Diez pasos, en orden. En cada uno te decimos qué hacer, por qué, y cómo saber que ha ido
+            Diez pasos, en orden, para tener tu app funcionando gratis, y un paso 11 opcional para
+            programar con Claude. En cada uno te decimos qué hacer, por qué, y cómo saber que ha ido
             bien. Marca <span class="ui">Hecho</span> al terminar cada paso: esta página lo
             recuerda.
           </p>
           <div class="facts">
-            <div class="fact"><b>0 €</b><span>Todo gratis</span></div>
+            <div class="fact"><b>0 €</b><span>Todo lo necesario es gratis</span></div>
             <div class="fact"><b>~45 min</b><span>Casi todo es esperar descargas</span></div>
             <div class="fact"><b>0</b><span>Conocimientos previos</span></div>
           </div>
@@ -1374,20 +1531,331 @@ Deployed Functions on project abcdefghijklmnopqrst: delete-account
           </div>
         </section>
 
+        <div class="section-label">Parte 5 · Programar con Claude (opcional)</div>
+
+        <!-- 11 · CLAUDE -->
+        <section class="step" id="claude" data-step="claude">
+          <div class="step-head">
+            <div class="num">11</div>
+            <div>
+              <h2>Conecta Claude, tu compañero de programación</h2>
+              <div class="meta">
+                10 min · lo único de pago: necesita un plan de Claude (Pro o superior)
+              </div>
+            </div>
+          </div>
+          <p class="why">
+            Claude lee todo el proyecto, conoce sus reglas y trae <b>recetas (skills)</b> que se
+            escriben con <kbd>/</kbd> para hacer tareas completas bien hechas: construir, revisar,
+            proteger, publicar. La app funciona sin él, pero con él avanzarás muchísimo más rápido.
+          </p>
+          <div class="body">
+            <div class="links">
+              <a
+                class="btn primary"
+                href="https://claude.ai/download"
+                target="_blank"
+                rel="noopener"
+              >
+                Descargar Claude para Windows <span class="arrow">↗</span>
+              </a>
+            </div>
+            <ol class="do">
+              <li>Instala la app de Claude e inicia sesión con tu cuenta (plan Pro o superior).</li>
+              <li>
+                Entra en la pestaña <span class="ui">Code</span> y elige la
+                <b>carpeta del proyecto</b> (<span class="path">C:\proyectos\mi-app</span>, la que
+                tiene <span class="path">package.json</span>). Claude usa Git por debajo: por eso lo
+                instalaste en el paso 2.
+              </li>
+              <li>Si pregunta si confías en la carpeta, acepta.</li>
+              <li>Escribe esto y pulsa <kbd>Enter</kbd>:</li>
+            </ol>
+            <div class="cmd">
+              <code>/empezar</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <div class="note check">
+              <span class="tag">Bien si…</span>
+              <span
+                >Claude te contesta en castellano, revisa tu ordenador y te dice qué tienes y qué
+                puedes hacer ahora.</span
+              >
+            </div>
+          </div>
+          <details>
+            <summary>¿Algo no va?</summary>
+            <dl>
+              <div>
+                <dt>Al escribir <kbd>/</kbd> no salen las skills del proyecto</dt>
+                <dd>
+                  Abriste otra carpeta. Tiene que ser la del proyecto (la que contiene la carpeta
+                  <span class="path">.claude</span>).
+                </dd>
+              </div>
+              <div>
+                <dt>Me pide permiso para ejecutar comandos</dt>
+                <dd>
+                  Es normal y es bueno: los seguros ya están permitidos. Lee qué pide; si es subir
+                  algo a internet, borrar o pagar, pregúntale antes qué va a pasar.
+                </dd>
+              </div>
+              <div>
+                <dt>"Has llegado al límite de uso"</dt>
+                <dd>
+                  Los planes tienen un límite cada pocas horas. <b>/implement-task</b> en tareas
+                  grandes gasta más; para cambios pequeños, pídeselo directamente.
+                </dd>
+              </div>
+            </dl>
+          </details>
+          <div class="done-row">
+            <label class="done-toggle"><input type="checkbox" id="done-claude" /> Hecho</label>
+          </div>
+        </section>
+
+        <section class="guide" id="skills" aria-labelledby="skills-title">
+          <h2 id="skills-title">Qué pedirle a Claude</h2>
+          <p>
+            Puedes hablarle normal, como a una persona. Pero para el trabajo serio hay tres recetas
+            que conviene conocer bien. Escribe la barra <kbd>/</kbd>, el nombre y lo que quieres.
+          </p>
+
+          <article class="feature">
+            <div class="feature-head">
+              <span class="slash">/implement-task</span>
+              <h3>Construir cualquier cosa, de principio a fin</h3>
+            </div>
+            <p class="when">
+              Para todo lo que quieras añadir o cambiar en la app. Claude hace el trabajo completo
+              (entender, planear, programar, probar, revisar y guardar) y
+              <b>se para a preguntarte en seis momentos</b>. Nunca sigue sin tu OK en esas paradas.
+            </p>
+            <div class="cmd">
+              <code
+                >/implement-task quiero poder marcar notas como favoritas y que salgan arriba</code
+              ><button class="copy" type="button">Copiar</button>
+            </div>
+            <ol class="stops">
+              <li>
+                <b>Dudas</b>Te pregunta solo lo que no esté claro, con opciones y su recomendación.
+              </li>
+              <li>
+                <b>Opciones</b>Si hay varias formas de hacerlo, te las enseña con esfuerzo, riesgo y
+                coste.
+              </li>
+              <li>
+                <b>El plan</b>Te explica en llano qué va a cambiar y te avisa si algo costaría
+                dinero.
+              </li>
+              <li>
+                <b>Pruébalo</b>Lo construye y comprueba, y te da una lista de qué tocar en tu móvil.
+              </li>
+              <li>
+                <b>Integrarlo</b>Te pide permiso antes de juntarlo con la versión buena de la app.
+              </li>
+              <li>
+                <b>Dinero o producción</b>Cualquier cosa que cueste o afecte a usuarios reales,
+                antes, te la pregunta.
+              </li>
+            </ol>
+            <div class="note check">
+              <span class="tag">Consejo</span>
+              <span
+                >Si algo del plan no te cuadra o no lo entiendes, díselo tal cual: vuelve atrás y te
+                lo explica o lo cambia.</span
+              >
+            </div>
+          </article>
+
+          <article class="feature">
+            <div class="feature-head">
+              <span class="slash">/revisar-arquitectura</span>
+              <h3>¿Esto aguantará cuando crezca?</h3>
+            </div>
+            <p class="when">
+              <b>Cuándo:</b> antes de algo grande (grupos, chat, pagos, compartir cosas entre
+              usuarios), cuando algo va lento o "se está complicando", y de vez en cuando como
+              chequeo.
+            </p>
+            <p>
+              Revisa el diseño de la app como un arquitecto: cómo están organizados los datos, dónde
+              vive cada cosa, si irá rápida con muchos usuarios, qué pasa cuando algo falla, cuánto
+              costará y si hay algo más complicado de lo necesario. Te da un mapa, un semáforo por
+              área y qué pasaría si no se arregla cada cosa. Las decisiones importantes las apunta
+              en <span class="path">docs/decisiones/</span>.
+            </p>
+            <div class="cmd">
+              <code
+                >/revisar-arquitectura quiero que varios amigos compartan una lista de notas</code
+              ><button class="copy" type="button">Copiar</button>
+            </div>
+            <div class="cmd">
+              <code>/revisar-arquitectura</code><button class="copy" type="button">Copiar</button>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div class="feature-head">
+              <span class="slash">/anti-hackeo</span>
+              <h3>Que no te hackeen</h3>
+            </div>
+            <p class="when">
+              <b>Cuándo:</b> antes de enseñar la app a desconocidos, antes de publicarla, y siempre
+              que se toque el login, los permisos, los pagos o las claves.
+            </p>
+            <p>
+              Piensa como un atacante y <b>lo prueba de verdad</b>: intenta leer los datos de tus
+              usuarios sin cuenta y desde otra cuenta, busca claves filtradas (también en el
+              historial), y revisa el login, las funciones de servidor, los archivos y las
+              librerías. Te explica cada problema con un ejemplo de la vida real y te propone el
+              arreglo.
+            </p>
+            <div class="cmd">
+              <code>/anti-hackeo</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <p>
+              El ataque automático también lo puedes lanzar tú en la terminal (tarda unos segundos):
+            </p>
+            <div class="cmd">
+              <code>npm run check:ataque</code><button class="copy" type="button">Copiar</button>
+            </div>
+            <div class="shield">
+              <b>Lo que más te protege no es código. Hazlo hoy:</b>
+              <ul>
+                <li>
+                  Activa la <b>verificación en dos pasos</b> en tu email (el primero), GitHub,
+                  Supabase y Expo.
+                </li>
+                <li>
+                  Guarda tus contraseñas en un <b>gestor</b> (Bitwarden es gratis) y no las repitas.
+                </li>
+                <li>
+                  La <b>Secret key</b> de Supabase no se pega en ningún sitio: ni en la app, ni en
+                  el chat, ni en archivos.
+                </li>
+              </ul>
+            </div>
+          </article>
+
+          <div class="skill-groups">
+            <section class="skill-group">
+              <h3>Aprender</h3>
+              <dl>
+                <div>
+                  <dt>/empezar</dt>
+                  <dd>Dejarlo todo funcionando la primera vez.</dd>
+                </div>
+                <div>
+                  <dt>/explicar</dt>
+                  <dd>Entender un archivo o una idea, sin jerga.</dd>
+                </div>
+                <div>
+                  <dt>/planificar</dt>
+                  <dd>Convertir una idea en un plan escrito antes de programar.</dd>
+                </div>
+              </dl>
+            </section>
+            <section class="skill-group">
+              <h3>Construir</h3>
+              <dl>
+                <div>
+                  <dt>/nueva-feature</dt>
+                  <dd>Una función completa: datos, pantallas y tests.</dd>
+                </div>
+                <div>
+                  <dt>/nueva-pantalla</dt>
+                  <dd>Una pantalla nueva con sus estados.</dd>
+                </div>
+                <div>
+                  <dt>/nueva-tabla</dt>
+                  <dd>Guardar datos nuevos de forma segura.</dd>
+                </div>
+                <div>
+                  <dt>/nuevo-componente</dt>
+                  <dd>Una pieza visual reutilizable.</dd>
+                </div>
+                <div>
+                  <dt>/pulir-ui</dt>
+                  <dd>Que se vea y se use mejor.</dd>
+                </div>
+                <div>
+                  <dt>/subir-imagenes</dt>
+                  <dd>Fotos de la galería o la cámara.</dd>
+                </div>
+                <div>
+                  <dt>/edge-function</dt>
+                  <dd>Código de servidor con claves secretas.</dd>
+                </div>
+                <div>
+                  <dt>/enviar-email</dt>
+                  <dd>Emails desde la app (nivel 4).</dd>
+                </div>
+                <div>
+                  <dt>/nuevo-evento</dt>
+                  <dd>Medir cuánta gente usa algo.</dd>
+                </div>
+              </dl>
+            </section>
+            <section class="skill-group">
+              <h3>Arreglar y cuidar</h3>
+              <dl>
+                <div>
+                  <dt>/arreglar-bug</dt>
+                  <dd>Algo falla: encontrar la causa y arreglarla.</dd>
+                </div>
+                <div>
+                  <dt>/escribir-tests</dt>
+                  <dd>Pruebas automáticas para que no se rompa.</dd>
+                </div>
+                <div>
+                  <dt>/revisar-seguridad</dt>
+                  <dd>Chequeo rápido de seguridad tras tocar datos.</dd>
+                </div>
+              </dl>
+            </section>
+            <section class="skill-group">
+              <h3>Guardar, publicar y crecer</h3>
+              <dl>
+                <div>
+                  <dt>/preparar-pr</dt>
+                  <dd>Revisar y guardar tus cambios en GitHub.</dd>
+                </div>
+                <div>
+                  <dt>/graduar</dt>
+                  <dd>Siguiente nivel: GitHub, builds, emails, tiendas… (con costes).</dd>
+                </div>
+                <div>
+                  <dt>/publicar</dt>
+                  <dd>Sacar una versión en App Store y Google Play.</dd>
+                </div>
+                <div>
+                  <dt>/actualizar-ota</dt>
+                  <dd>Arreglo rápido sin pasar por la tienda.</dd>
+                </div>
+                <div>
+                  <dt>/actualizar-expo</dt>
+                  <dd>Poner al día la base de la app.</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+
+          <article class="feature">
+            <h3>Frases que funcionan</h3>
+            <ul class="phrases">
+              <li>Antes de tocar nada, explícame el plan como si no supiera programar.</li>
+              <li>¿Esto me va a costar dinero? ¿Seguirá funcionando en Expo Go?</li>
+              <li>Explícame qué has cambiado y qué debería probar en mi móvil.</li>
+              <li>Me sale este error: (pega el texto del error)</li>
+              <li>Esto no me gusta así, prefiero que…</li>
+            </ul>
+          </article>
+        </section>
+
         <section class="finale" aria-labelledby="finale-title">
           <h2 id="finale-title">Ya tienes tu app funcionando</h2>
           <p>Todo lo que has montado es gratis. Siguientes pasos cuando quieras:</p>
           <ul>
-            <li>
-              <b>Programar con Claude</b>: descarga la app de Claude para Windows (<a
-                href="https://claude.ai/download"
-                target="_blank"
-                rel="noopener"
-                >claude.ai/download</a
-              >), entra en la pestaña <b>Code</b>, abre la carpeta del proyecto y escribe
-              <b>/empezar</b>. Es lo único de pago de esta lista (necesita un plan de Claude, como
-              Pro); lo demás no lo necesita.
-            </li>
             <li>
               <b>Ponerle tu nombre</b>:
               <span class="path">npm run rename -- "Mi App" com.tunombre.miapp</span>

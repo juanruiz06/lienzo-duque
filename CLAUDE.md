@@ -22,30 +22,35 @@ nube (ver "Entorno del dueño" en AGENTS.md). Si se atasca instalando o arrancan
 ## Skills del proyecto
 
 Están en `.claude/skills/`. Se invocan escribiendo `/nombre` (o Claude las usa solo cuando encajan).
-Si la persona no sabe por dónde empezar, sugiérele la adecuada.
+Si la persona no sabe por dónde empezar, sugiérele la adecuada. Para cualquier tarea de más de un
+par de archivos, la recomendada es **`/implement-task`**: orquesta las demás (y los agentes de
+`.claude/agents/`) con paradas para que el dueño decida.
 
-| Skill                | Para qué                                                             |
-| -------------------- | -------------------------------------------------------------------- |
-| `/empezar`           | Primera vez: dejar la máquina lista y la app funcionando             |
-| `/explicar`          | Entender un archivo, un concepto o "cómo funciona X" sin jerga       |
-| `/planificar`        | Convertir una idea en una spec corta (docs/specs) antes de programar |
-| `/nueva-feature`     | Feature completa: tabla + RLS + api + hooks + pantallas + tests      |
-| `/nueva-tabla`       | Migración de base de datos segura (RLS + permisos + tipos)           |
-| `/nueva-pantalla`    | Pantalla nueva con navegación y sus estados                          |
-| `/nuevo-componente`  | Componente de UI reutilizable con el tema y accesibilidad            |
-| `/pulir-ui`          | Revisar y mejorar el aspecto/usabilidad de una pantalla              |
-| `/subir-imagenes`    | Fotos: elegir de la galería/cámara y guardarlas en Supabase Storage  |
-| `/edge-function`     | Código de servidor (con claves secretas) en Supabase                 |
-| `/nuevo-evento`      | Añadir un evento de analítica al catálogo                            |
-| `/enviar-email`      | Enviar emails desde el servidor con Resend                           |
-| `/arreglar-bug`      | Encontrar y arreglar un fallo con método                             |
-| `/escribir-tests`    | Añadir tests a lo que ya existe                                      |
-| `/revisar-seguridad` | Auditoría de RLS, permisos y secretos                                |
-| `/preparar-pr`       | Comprobar todo, commit, push y abrir el Pull Request                 |
-| `/graduar`           | Subir de nivel (nube, builds, Sentry, emails, tiendas, push, pagos…) |
-| `/publicar`          | Build de producción y envío a App Store / Google Play                |
-| `/actualizar-ota`    | Publicar un arreglo solo-JS sin pasar por la tienda                  |
-| `/actualizar-expo`   | Subir de versión de Expo SDK con seguridad                           |
+| Skill                   | Para qué                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| `/empezar`              | Primera vez: dejar la máquina lista y la app funcionando                                 |
+| `/explicar`             | Entender un archivo, un concepto o "cómo funciona X" sin jerga                           |
+| `/implement-task`       | **El flujo completo** para cualquier tarea: entender → plan → construir → verificar → PR |
+| `/planificar`           | Convertir una idea en una spec corta (docs/specs) antes de programar                     |
+| `/nueva-feature`        | Feature completa: tabla + RLS + api + hooks + pantallas + tests                          |
+| `/nueva-tabla`          | Migración de base de datos segura (RLS + permisos + tipos)                               |
+| `/nueva-pantalla`       | Pantalla nueva con navegación y sus estados                                              |
+| `/nuevo-componente`     | Componente de UI reutilizable con el tema y accesibilidad                                |
+| `/pulir-ui`             | Revisar y mejorar el aspecto/usabilidad de una pantalla                                  |
+| `/subir-imagenes`       | Fotos: elegir de la galería/cámara y guardarlas en Supabase Storage                      |
+| `/edge-function`        | Código de servidor (con claves secretas) en Supabase                                     |
+| `/nuevo-evento`         | Añadir un evento de analítica al catálogo                                                |
+| `/enviar-email`         | Enviar emails desde el servidor con Resend                                               |
+| `/arreglar-bug`         | Encontrar y arreglar un fallo con método                                                 |
+| `/escribir-tests`       | Añadir tests a lo que ya existe                                                          |
+| `/revisar-arquitectura` | Chequeo de diseño de sistemas: capas, datos, rendimiento, fallos, coste                  |
+| `/anti-hackeo`          | Auditoría de seguridad completa como un atacante (+ `npm run check:ataque`)              |
+| `/revisar-seguridad`    | Chequeo rápido de seguridad tras tocar tablas                                            |
+| `/preparar-pr`          | Comprobar todo, commit, push y abrir el Pull Request                                     |
+| `/graduar`              | Subir de nivel (nube, builds, Sentry, emails, tiendas, push, pagos…)                     |
+| `/publicar`             | Build de producción y envío a App Store / Google Play                                    |
+| `/actualizar-ota`       | Publicar un arreglo solo-JS sin pasar por la tienda                                      |
+| `/actualizar-expo`      | Subir de versión de Expo SDK con seguridad                                               |
 
 Además: `vercel-react-native-skills` (rendimiento RN) y `vercel-composition-patterns`
 (arquitectura de componentes), y el plugin oficial de Expo (`.claude/settings.json`).

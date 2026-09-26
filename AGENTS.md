@@ -56,20 +56,21 @@ SDK), nunca con `npm install <paquete>` a secas. Excepción: herramientas de des
 
 ## Comandos
 
-| Comando                                     | Qué hace                                                                                     |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `npm start`                                 | Arranca Metro. Se escanea el QR con Expo Go. `w` = abrir en el navegador                     |
-| `npm run start:tunnel`                      | Igual, pero por túnel (redes que bloquean móvil ↔ ordenador)                                 |
-| `npm run check`                             | **Los 4 gates**: typecheck + lint + formato + tests. Córrelo antes de dar nada por terminado |
-| `npm run doctor`                            | Diagnostica la máquina y el `.env`                                                           |
-| `npm run setup`                             | Asistente interactivo: `.env` + login + link + migraciones + Edge Function (lo corre él)     |
-| `npm run db:new -- <nombre>`                | Crea una migración vacía en `supabase/migrations/`                                           |
-| `npm run db:push`                           | Aplica migraciones pendientes al proyecto de la NUBE enlazado (pide confirmación)            |
-| `npm run db:types`                          | Regenera `src/types/database.ts` (de la base local si está en marcha; si no, de la nube)     |
-| `npm run check:secrets`                     | Busca claves secretas donde no deben estar                                                   |
-| `npm run check:rls`                         | Reglas de seguridad de la base (solo con base local; si no, lo hace el CI)                   |
-| `npm run rename -- "Nombre" com.x.app`      | Renombra la plantilla (nombre, slug, bundle id, esquema)                                     |
-| `npm run db:start` / `db:stop` / `db:reset` | Solo modo local (Docker): arrancar, parar, recrear desde cero con `seed.sql`                 |
+| Comando                                     | Qué hace                                                                                       |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `npm start`                                 | Arranca Metro. Se escanea el QR con Expo Go. `w` = abrir en el navegador                       |
+| `npm run start:tunnel`                      | Igual, pero por túnel (redes que bloquean móvil ↔ ordenador)                                   |
+| `npm run check`                             | **Los 4 gates**: typecheck + lint + formato + tests. Córrelo antes de dar nada por terminado   |
+| `npm run doctor`                            | Diagnostica la máquina y el `.env`                                                             |
+| `npm run setup`                             | Asistente interactivo: `.env` + login + link + migraciones + Edge Function (lo corre él)       |
+| `npm run db:new -- <nombre>`                | Crea una migración vacía en `supabase/migrations/`                                             |
+| `npm run db:push`                           | Aplica migraciones pendientes al proyecto de la NUBE enlazado (pide confirmación)              |
+| `npm run db:types`                          | Regenera `src/types/database.ts` (de la base local si está en marcha; si no, de la nube)       |
+| `npm run check:secrets`                     | Busca claves secretas donde no deben estar                                                     |
+| `npm run check:rls`                         | Reglas de seguridad de la base (solo con base local; si no, lo hace el CI)                     |
+| `npm run check:ataque`                      | Ataca la base de `.env` como un desconocido sin sesión (tablas, RPC, Edge Functions, archivos) |
+| `npm run rename -- "Nombre" com.x.app`      | Renombra la plantilla (nombre, slug, bundle id, esquema)                                       |
+| `npm run db:start` / `db:stop` / `db:reset` | Solo modo local (Docker): arrancar, parar, recrear desde cero con `seed.sql`                   |
 
 Supabase local usa puertos **544xx** (API `54421`, Studio `54423`, Mailpit `54424`). Usuario de
 prueba del seed (solo base local): `demo@lienzo.test` / `lienzo-demo-1234`.
@@ -108,7 +109,8 @@ docs/                   Documentación para humanos (empieza por docs/README.md)
   graduacion/           Niveles: nube, builds, Sentry/PostHog, emails, tiendas, push, pagos…
   specs/                Especificaciones de features antes de construirlas
 scripts/                doctor, rename-app, gen-db-types, check-secrets
-.claude/skills/         Skills de Claude Code (/nueva-feature, /arreglar-bug…)
+.claude/skills/         Skills de Claude Code (/implement-task, /nueva-feature, /anti-hackeo…)
+.claude/agents/         Subagentes que usa /implement-task (idea-scout, spec-writer, task-implementer…)
 .github/workflows/      CI + despliegues (inactivos hasta configurar secrets)
 ```
 

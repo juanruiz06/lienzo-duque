@@ -28,7 +28,8 @@
     "prepare": "husky",
     "check:rls": "tsx scripts/check-rls.ts",
     "setup": "tsx scripts/setup.ts",
-    "start:tunnel": "expo start --tunnel"
+    "start:tunnel": "expo start --tunnel",
+    "check:ataque": "tsx scripts/check-ataque.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

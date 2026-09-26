@@ -1,6 +1,6 @@
 ---
 name: revisar-seguridad
-description: Auditoría de seguridad del proyecto - RLS y policies de cada tabla, permisos de anon, Storage, Edge Functions, secretos en el código y datos personales en analítica. Úsala antes de publicar, tras añadir tablas o cuando pregunten "¿es seguro?".
+description: Revisión de seguridad RÁPIDA (5 minutos) - RLS y policies de las tablas, secretos en el código y sondeo sin sesión. Úsala tras añadir o cambiar tablas, o antes de un PR. Para la auditoría completa pensando como un atacante (cuentas, historial de git, pruebas entre usuarios, abuso, dependencias) usa /anti-hackeo.
 ---
 
 # Revisar seguridad
@@ -11,6 +11,7 @@ Informe primero, cambios después (y solo con OK). Reglas de referencia: `INVARI
 
 ```bash
 npm run check:secrets
+npm run check:ataque
 npm run check:rls
 ```
 

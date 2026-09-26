@@ -9,7 +9,10 @@ Formato del ID: `INV-<área>-<n>`. Si rompes una a propósito, dilo en el PR y e
 Comprobación rápida de todo lo automatizable:
 
 ```bash
-npm run check && npm run check:secrets && npm run check:rls
+npm run check
+npm run check:secrets
+npm run check:ataque
+npm run check:rls
 ```
 
 ---
