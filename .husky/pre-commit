@@ -1,0 +1,3 @@
+# Antes de cada commit: formatea y lintea SOLO los archivos que vas a commitear (rápido).
+# La batería completa (typecheck + tests) la corre `npm run check` y el CI en cada PR.
+npx lint-staged

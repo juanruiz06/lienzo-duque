@@ -1,0 +1,8 @@
+# Mantiene al día las acciones de GitHub (checkout, setup-node…). Las dependencias de npm NO:
+# en Expo se actualizan con `npx expo install --fix` (skill /actualizar-expo), no una a una.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

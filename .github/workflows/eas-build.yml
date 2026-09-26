@@ -1,0 +1,80 @@
+name: EAS Build (+ envío a las tiendas)
+
+# Compila la app en los servidores de Expo (no necesitas Mac para iOS) y, si quieres, la envía
+# a TestFlight / Google Play. Se lanza A MANO: GitHub → Actions → "EAS Build" → Run workflow.
+#
+# INACTIVO hasta que añadas el secret EXPO_TOKEN (https://expo.dev/settings/access-tokens).
+# Guías: docs/graduacion/02-builds-con-eas.md y docs/graduacion/05-publicar-en-tiendas.md
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Perfil de eas.json'
+        required: true
+        default: preview
+        type: choice
+        options: [development, preview, production]
+      platform:
+        description: 'Plataforma'
+        required: true
+        default: all
+        type: choice
+        options: [all, ios, android]
+      submit:
+        description: 'Enviar a las tiendas al terminar (solo perfil production)'
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: eas-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: ¿Está configurado?
+        id: guard
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::notice::Falta EXPO_TOKEN → no se compila (no-op verde)."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.guard.outputs.enabled == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.guard.outputs.enabled == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        if: steps.guard.outputs.enabled == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npm ci
+        if: steps.guard.outputs.enabled == 'true'
+        env:
+          HUSKY: 0
+
+      # --no-wait: el build sigue en los servidores de Expo; el progreso se ve en expo.dev.
+      - name: Build
+        if: steps.guard.outputs.enabled == 'true'
+        run: |
+          SUBMIT_FLAG=""
+          if [ "${{ inputs.submit }}" = "true" ] && [ "${{ inputs.profile }}" = "production" ]; then
+            SUBMIT_FLAG="--auto-submit"
+          fi
+          eas build --profile "${{ inputs.profile }}" --platform "${{ inputs.platform }}" \
+            --non-interactive --no-wait $SUBMIT_FLAG

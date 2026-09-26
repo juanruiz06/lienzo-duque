@@ -1,0 +1,64 @@
+name: EAS Update (actualización OTA)
+
+# Publica un cambio SOLO de JavaScript/imágenes en las apps ya instaladas, sin pasar por la
+# revisión de Apple/Google. Se lanza a mano: Actions → "EAS Update" → Run workflow.
+#
+# ⚠️ Solo vale si NO has tocado nada nativo (app.json/plugins, dependencias con código nativo).
+#    Si lo has tocado → nuevo build (eas-build.yml). Guía: docs/graduacion/07-actualizaciones-ota.md
+# INACTIVO hasta que añadas el secret EXPO_TOKEN y configures expo-updates (ver la guía).
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Canal'
+        required: true
+        default: production
+        type: choice
+        options: [preview, production]
+      message:
+        description: 'Qué cambia (se ve en expo.dev)'
+        required: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: ¿Está configurado?
+        id: guard
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::notice::Falta EXPO_TOKEN → no se publica (no-op verde)."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.guard.outputs.enabled == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.guard.outputs.enabled == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        if: steps.guard.outputs.enabled == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npm ci
+        if: steps.guard.outputs.enabled == 'true'
+        env:
+          HUSKY: 0
+
+      - name: Publicar update
+        if: steps.guard.outputs.enabled == 'true'
+        run: |
+          eas update --channel "${{ inputs.channel }}" --environment "${{ inputs.channel }}" \
+            --message "${{ inputs.message }}" --non-interactive

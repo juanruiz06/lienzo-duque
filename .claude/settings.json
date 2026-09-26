@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledPlugins": {
+    "expo@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run check)",
+      "Bash(npm run check:*)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:fix)",
+      "Bash(npm run format)",
+      "Bash(npm run format:check)",
+      "Bash(npm test)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run doctor)",
+      "Bash(npm run db:types)",
+      "Bash(npm run db:start)",
+      "Bash(npm run db:new:*)",
+      "Bash(npx supabase status:*)",
+      "Bash(npx supabase migration list:*)",
+      "Bash(npx expo install:*)",
+      "Bash(npx expo-doctor:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr checks:*)",
+      "WebFetch(domain:docs.expo.dev)",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:reactnative.dev)",
+      "WebFetch(domain:tanstack.com)"
+    ],
+    "ask": [
+      "Bash(npm run db:push:*)",
+      "Bash(npx supabase db push:*)",
+      "Bash(npx supabase functions deploy:*)",
+      "Bash(npx supabase secrets set:*)",
+      "Bash(npx eas-cli:*)",
+      "Bash(eas build:*)",
+      "Bash(eas submit:*)",
+      "Bash(eas update:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": [
+      "Bash(npx supabase db reset --linked:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)"
+    ]
+  }
+}

@@ -1,0 +1,86 @@
+name: CI
+
+# Se ejecuta en cada Pull Request y en cada push a main. Si algo falla, el PR sale en rojo.
+# Configúralo como "required check" (docs/graduacion/01-nube-github-y-ci.md) para que no se pueda
+# mergear nada roto.
+#
+# Coste: GitHub Actions es GRATIS en repos públicos e incluye 2.000 min/mes en privados.
+# Un run típico gasta ~3 min. En los PR corre SIEMPRE (si fuera "required check" y se saltara
+# en un PR solo de docs, GitHub lo dejaría esperando para siempre); en push a main, los cambios
+# solo de documentación no lo lanzan.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md']
+
+# Si subes otro commit al mismo PR, se cancela el run anterior (ahorra minutos).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Calidad (tipos, lint, formato, tests, secretos)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # npm ci = instalación limpia y exacta desde package-lock.json.
+      # HUSKY=0: en CI no se instalan los hooks de git.
+      - run: npm ci
+        env:
+          HUSKY: 0
+
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Formato
+        run: npm run format:check
+      - name: Tests
+        run: npm test -- --ci
+      - name: Secretos
+        run: npm run check:secrets
+
+  database:
+    name: Base de datos (migraciones + tipos al día)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+        env:
+          HUSKY: 0
+
+      # Arranca SOLO Postgres (rápido) y aplica todas las migraciones + seed desde cero.
+      # Si una migración tiene un error, falla aquí y no en producción.
+      - name: Aplicar migraciones desde cero
+        run: npx supabase db start
+
+      # RLS activado, sin permisos para `anon`, policies eficientes (INVARIANTS.md → INV-DB-*).
+      - name: Reglas de seguridad de la base de datos
+        run: npm run check:rls
+
+      # Si cambiaste una migración pero olvidaste `npm run db:types`, esto lo detecta.
+      - name: Comprobar que src/types/database.ts está al día
+        run: |
+          npm run db:types
+          if ! git diff --exit-code src/types/database.ts; then
+            echo "::error::src/types/database.ts no está al día. Ejecuta 'npm run db:types' y haz commit."
+            exit 1
+          fi

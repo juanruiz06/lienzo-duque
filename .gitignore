@@ -1,0 +1,45 @@
+# Dependencias
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Carpetas nativas generadas (CNG): se regeneran con `npx expo prebuild`. No se editan a mano.
+/ios
+/android
+.kotlin/
+
+# Firmas y certificados: NUNCA al repo
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+*.orig.*
+
+# Secretos locales (.env.example SÍ se versiona: solo lleva nombres)
+.env
+.env*.local
+supabase/functions/.env
+supabase/.temp/
+supabase/.branches/
+
+# Metro / TypeScript / tests
+.metro-health-check*
+*.tsbuildinfo
+coverage/
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+
+# Claude Code: ajustes personales (los del equipo van en .claude/settings.json)
+.claude/settings.local.json
